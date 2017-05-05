@@ -14,49 +14,21 @@ var Catacombs;
     ;
     var MapSprite = (function (_super) {
         __extends(MapSprite, _super);
-        function MapSprite(tex, type) {
+        function MapSprite(tex, type, exits) {
             var _this = _super.call(this, tex) || this;
             _this.type = type;
+            _this.exits = exits;
             return _this;
         }
         return MapSprite;
     }(PIXI.Sprite));
-    var Array2D = (function () {
-        function Array2D(width, height) {
-            if (width === void 0) { width = 0; }
-            if (height === void 0) { height = 0; }
-            this.width = width;
-            this.height = height;
-            this.array = new Array();
+    var PlayerSprite = (function (_super) {
+        __extends(PlayerSprite, _super);
+        function PlayerSprite(tex) {
+            return _super.call(this, tex) || this;
         }
-        Array2D.prototype.getPlainArray = function () {
-            return this.array;
-        };
-        Array2D.prototype.getValue = function (x, y) {
-            var row = this.array[y];
-            if (typeof row === "undefined" || row[x] == null) {
-                return null;
-            }
-            else {
-                return row[x];
-            }
-        };
-        Array2D.prototype.setValue = function (x, y, val) {
-            if (x < 0 || (x >= this.width && this.width != 0))
-                return false;
-            if (y < 0 || (y >= this.height && this.height != 0))
-                return false;
-            var row = this.array[y];
-            if (typeof row === "undefined") {
-                row = [];
-                this.array[y] = row;
-            }
-            row[x] = val;
-            return true;
-        };
-        return Array2D;
-    }());
-    Catacombs.Array2D = Array2D;
+        return PlayerSprite;
+    }(PIXI.Sprite));
     var Game = (function () {
         function Game() {
             var self = this;
@@ -81,9 +53,9 @@ var Catacombs;
             self.stage = new PIXI.Container();
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
-            var unit = 20;
-            var mapPieceSize = 394;
-            var map = new Array2D();
+            var mapPieceSize = 100;
+            var tokenSize = 30;
+            var map = new Catacombs.Array2D();
             // pro začátek zkusíme od každého dílku 5 kusů
             // je 10 druhů, takže 50 dílků mapy sqrt(50) je 7 (^49)
             // to se hodí, protože by se udělala mřížka 7x7, ve které
@@ -96,7 +68,44 @@ var Catacombs;
             var mapPiecesExits = [10, 10, 15, 11, 14, 10, 14, 7, 13, 5];
             var mapTextures = [];
             for (var i = 1; i <= 10; i++)
-                mapTextures.push(PIXI.Texture.fromImage('images/map' + i + '.png'));
+                mapTextures.push(PIXI.Texture.fromImage('images/map' + i + '.png', false));
+            // poklady
+            var treasuresCount = [15, 10, 5, 2];
+            var treasuresTextures = [];
+            var treasureToken = PIXI.Texture.fromImage('images/gold_token.png', false);
+            for (var i = 1; i <= 4; i++)
+                treasuresTextures.push(PIXI.Texture.fromImage('images/gold' + i + '.png', false));
+            // hráči
+            var playerTextures = [];
+            for (var i = 1; i <= 4; i++)
+                playerTextures.push(PIXI.Texture.fromImage('images/player' + i + '.png', false));
+            // netvoři
+            var monsterCount = [5, 3, 2, 1, 1];
+            var monsterDefense = [0, 1, 2, 3, 4];
+            var monsterAttack = [1, 1, 2, 3, 4];
+            var monsterTextures = [];
+            var monsterDescTextures = [];
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/zombie.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/skeleton.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/swamper.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/troll.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/minotaur.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/zombie_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/skeleton_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/swamper_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/troll_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/minotaur_token.png', false));
+            // vybavení
+            var itemsCount = [1, 1, 1, 1, 1, 1, 1, 1];
+            var itemsTextures = [];
+            itemsTextures.push(PIXI.Texture.fromImage('images/key.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/pickaxe.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/sword.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/lantern.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/crossbow.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/armor.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/shield.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/potion.png', false));
             var randomMapPiece = function (start) {
                 if (mapPiecesLeft == 0)
                     return null;
@@ -107,7 +116,7 @@ var Catacombs;
                     if (mapPiecesCount[mapPieceIndex] > 0) {
                         // ok, ještě dílky máme
                         mapPiecesCount[mapPieceIndex]--;
-                        return new MapSprite(mapTextures[mapPieceIndex], mapPieceIndex);
+                        return new MapSprite(mapTextures[mapPieceIndex], mapPieceIndex, mapPiecesExits[mapPieceIndex]);
                     }
                     else {
                         // nemám už tenhle dílek, zkus jiný druh
@@ -115,93 +124,117 @@ var Catacombs;
                     }
                 }
             };
-            var placeMapPiece = function (x, y, mapx, mapy, direction) {
+            var revealMapPiece = function (posx, posy, x, y, direction) {
                 // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný rozcestník '+'
                 var piece = randomMapPiece(!direction);
                 if (piece == null)
                     return;
                 mapCont.addChild(piece);
-                piece.x = mapx + 2 * unit;
-                piece.y = mapy + 2 * unit;
-                piece.scale = new PIXI.Point(4 * unit / mapPieceSize, 4 * unit / mapPieceSize);
+                piece.x = x + mapPieceSize / 2;
+                piece.y = y + mapPieceSize / 2;
                 var exits = mapPiecesExits[piece.type];
                 var rotation = 0;
                 if (direction) {
                     for (var i = 0; i < 4; i++) {
                         if (direction & exits)
                             break;
-                        rotation -= Math.PI / 2;
-                        exits = exits >> 1;
-                        if (!exits)
-                            exits = 8;
+                        rotation += Math.PI / 2;
+                        exits = Catacombs.Utils.scr(exits);
                     }
                 }
                 piece.anchor.set(0.5);
                 piece.rotation = rotation;
-                map.setValue(x, y, piece);
+                piece.exits = exits;
+                map.setValue(posx, posy, piece);
             };
             var mapCont = new PIXI.Container();
-            mapCont.fixedWidth = 4 * unit * mapSide;
-            mapCont.fixedHeight = 4 * unit * mapSide;
+            mapCont.fixedWidth = mapPieceSize * mapSide;
+            mapCont.fixedHeight = mapPieceSize * mapSide;
             self.stage.addChild(mapCont);
             var gridSize = mapPiecesLeft;
-            var _loop_1 = function (i) {
-                var x = (i % mapSide);
-                var y = Math.floor(i / mapSide);
-                var mapX = x * (unit * 4 + 1);
-                var mapY = y * (unit * 4 + 1);
-                if (x == Math.floor(mapSide / 2) && y == Math.floor(mapSide / 2)) {
-                    placeMapPiece(x, y, mapX, mapY, 0);
+            for (var i = 0; i < gridSize; i++) {
+                var posx = (i % mapSide);
+                var posy = Math.floor(i / mapSide);
+                var x = posx * mapPieceSize;
+                var y = posy * mapPieceSize;
+                if (posx == Math.floor(mapSide / 2) && posy == Math.floor(mapSide / 2)) {
+                    revealMapPiece(posx, posy, x, y, 0);
                 }
                 else {
-                    var shape_1 = new PIXI.Graphics();
-                    shape_1.beginFill(0x222222);
-                    shape_1.lineStyle(1, 0x000000);
-                    var drawShape_1 = (function (i) {
-                        var ii = i;
-                        return function () {
-                            shape_1.drawRect(0, 0, 4 * unit, 4 * unit);
-                        };
-                    })(i);
-                    drawShape_1();
-                    shape_1.interactive = true;
-                    shape_1.on("mouseover", function () {
-                        shape_1.lineStyle(1, 0xaa0000);
-                        drawShape_1();
-                    });
-                    shape_1.on("mouseout", function () {
-                        shape_1.lineStyle(1, 0x000000);
-                        drawShape_1();
-                    });
-                    shape_1.on("click", function () {
-                        var direcition = 0;
-                        // přicházím zleva
-                        if (map.getValue(x - 1, y))
-                            direcition = 1;
-                        // přicházím zprava
-                        if (map.getValue(x + 1, y))
-                            direcition = 4;
-                        // přicházím shora
-                        if (map.getValue(x, y - 1))
-                            direcition = 8;
-                        // přicházím zdola
-                        if (map.getValue(x, y + 1))
-                            direcition = 2;
-                        if (direcition) {
-                            placeMapPiece(x, y, shape_1.x, shape_1.y, direcition);
-                            mapCont.removeChild(shape_1);
-                        }
-                    });
-                    mapCont.addChild(shape_1);
-                    shape_1.x = mapX;
-                    shape_1.y = mapY;
+                    var shape = new PIXI.Graphics();
+                    shape.beginFill(0x222222);
+                    shape.lineStyle(1, 0x000000);
+                    shape.drawRect(1, 1, mapPieceSize - 2, mapPieceSize - 2);
+                    mapCont.addChild(shape);
+                    shape.x = x;
+                    shape.y = y;
                 }
-            };
-            for (var i = 0; i < gridSize; i++) {
-                _loop_1(i);
             }
             mapCont.x = self.stage.fixedWidth / 2 - mapCont.fixedWidth / 2;
             mapCont.y = self.stage.fixedHeight / 2 - mapCont.fixedHeight / 2;
+            var player = new PlayerSprite(playerTextures[0]);
+            player.posx = Math.floor(mapSide / 2);
+            player.posy = Math.floor(mapSide / 2);
+            self.stage.addChild(player);
+            player.x = self.stage.fixedWidth / 2 - tokenSize / 2;
+            player.y = self.stage.fixedHeight / 2 - tokenSize / 2;
+            var movePlayer = function (sideFrom, sideTo) {
+                var posx = player.posx;
+                var posy = player.posy;
+                // můžu se posunout tímto směrem z aktuální místnosti?
+                var mapPiece = map.getValue(posx, posy);
+                if (!(sideFrom & mapPiece.exits)) {
+                    return;
+                }
+                // můžu se posunout tímto směrem do další místnosti (pokud je objevená)?
+                var tposx = posx;
+                var tposy = posy;
+                switch (sideTo) {
+                    // přicházím zleva
+                    case 1:
+                        tposx = posx + 1;
+                        break;
+                    // přicházím zprava
+                    case 4:
+                        tposx = posx - 1;
+                        break;
+                    // přicházím shora
+                    case 8:
+                        tposy = posy + 1;
+                        break;
+                    // přicházím zdola
+                    case 2:
+                        tposy = posy - 1;
+                        break;
+                }
+                if (tposx < 0 || tposx >= mapSide || tposy < 0 || tposy >= mapSide)
+                    return;
+                mapPiece = map.getValue(tposx, tposy);
+                if (!mapPiece) {
+                    revealMapPiece(tposx, tposy, tposx * mapPieceSize, tposy * mapPieceSize, sideTo);
+                }
+                else {
+                    if (!(sideTo & mapPiece.exits)) {
+                        return;
+                    }
+                }
+                player.x += (tposx - player.posx) * mapPieceSize;
+                player.y += (tposy - player.posy) * mapPieceSize;
+                player.posx = tposx;
+                player.posy = tposy;
+            };
+            var playerUp = function () { return movePlayer(8, 2); };
+            var playerDown = function () { return movePlayer(2, 8); };
+            var playerLeft = function () { return movePlayer(1, 4); };
+            var playerRight = function () { return movePlayer(4, 1); };
+            Catacombs.Keyboard.on(37, function () { playerLeft(); });
+            Catacombs.Keyboard.on(65, function () { playerLeft(); });
+            Catacombs.Keyboard.on(38, function () { playerUp(); });
+            Catacombs.Keyboard.on(87, function () { playerUp(); });
+            Catacombs.Keyboard.on(39, function () { playerRight(); });
+            Catacombs.Keyboard.on(68, function () { playerRight(); });
+            Catacombs.Keyboard.on(40, function () { playerDown(); });
+            Catacombs.Keyboard.on(83, function () { playerDown(); });
             var ticker = PIXI.ticker.shared;
             ticker.add(function () {
                 statsFPS.begin();

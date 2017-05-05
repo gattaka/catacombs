@@ -13,44 +13,16 @@ namespace Catacombs {
     class MapSprite extends PIXI.Sprite {
         public mapx: number;
         public mapy: number;
-        constructor(tex: PIXI.Texture, public type: number) {
+        constructor(tex: PIXI.Texture, public type: number, public exits: number) {
             super(tex);
         }
     }
 
-    export class Array2D<T> {
-
-        private array = new Array<Array<T>>();
-
-        public getPlainArray() {
-            return this.array;
-        }
-
-        constructor(public width = 0, public height = 0) {
-        }
-
-        getValue(x: number, y: number): T {
-            var row = this.array[y];
-            if (typeof row === "undefined" || row[x] == null) {
-                return null;
-            }
-            else {
-                return row[x];
-            }
-        }
-
-        setValue(x: number, y: number, val: T): boolean {
-            if (x < 0 || (x >= this.width && this.width != 0))
-                return false;
-            if (y < 0 || (y >= this.height && this.height != 0))
-                return false;
-            var row = this.array[y];
-            if (typeof row === "undefined") {
-                row = [];
-                this.array[y] = row;
-            }
-            row[x] = val;
-            return true;
+    class PlayerSprite extends PIXI.Sprite {
+        public posx: number;
+        public posy: number;
+        constructor(tex: PIXI.Texture) {
+            super(tex);
         }
     }
 
@@ -105,8 +77,8 @@ namespace Catacombs {
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
 
-            let unit = 20;
-            let mapPieceSize = 394;
+            let mapPieceSize = 100;
+            let tokenSize = 30;
             let map = new Array2D<MapSprite>();
 
             // pro začátek zkusíme od každého dílku 5 kusů
@@ -121,7 +93,48 @@ namespace Catacombs {
             let mapPiecesExits = [0b1010, 0b1010, 0b1111, 0b1011, 0b1110, 0b1010, 0b1110, 0b0111, 0b1101, 0b0101];
             let mapTextures = [];
             for (let i = 1; i <= 10; i++)
-                mapTextures.push(PIXI.Texture.fromImage('images/map' + i + '.png'));
+                mapTextures.push(PIXI.Texture.fromImage('images/map' + i + '.png', false));
+
+            // poklady
+            let treasuresCount = [15, 10, 5, 2];
+            let treasuresTextures = [];
+            let treasureToken = PIXI.Texture.fromImage('images/gold_token.png', false);
+            for (let i = 1; i <= 4; i++)
+                treasuresTextures.push(PIXI.Texture.fromImage('images/gold' + i + '.png', false));
+
+            // hráči
+            let playerTextures = [];
+            for (let i = 1; i <= 4; i++)
+                playerTextures.push(PIXI.Texture.fromImage('images/player' + i + '.png', false));
+
+            // netvoři
+            let monsterCount = [5, 3, 2, 1, 1];
+            let monsterDefense = [0, 1, 2, 3, 4];
+            let monsterAttack = [1, 1, 2, 3, 4];
+            let monsterTextures = [];
+            let monsterDescTextures = [];
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/zombie.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/skeleton.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/swamper.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/troll.png', false));
+            monsterDescTextures.push(PIXI.Texture.fromImage('images/minotaur.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/zombie_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/skeleton_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/swamper_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/troll_token.png', false));
+            monsterTextures.push(PIXI.Texture.fromImage('images/minotaur_token.png', false));
+
+            // vybavení
+            let itemsCount = [1, 1, 1, 1, 1, 1, 1, 1];
+            let itemsTextures = [];
+            itemsTextures.push(PIXI.Texture.fromImage('images/key.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/pickaxe.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/sword.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/lantern.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/crossbow.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/armor.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/shield.png', false));
+            itemsTextures.push(PIXI.Texture.fromImage('images/potion.png', false));
 
             let randomMapPiece = (start: boolean): MapSprite => {
                 if (mapPiecesLeft == 0)
@@ -133,7 +146,7 @@ namespace Catacombs {
                     if (mapPiecesCount[mapPieceIndex] > 0) {
                         // ok, ještě dílky máme
                         mapPiecesCount[mapPieceIndex]--;
-                        return new MapSprite(mapTextures[mapPieceIndex], mapPieceIndex);
+                        return new MapSprite(mapTextures[mapPieceIndex], mapPieceIndex, mapPiecesExits[mapPieceIndex]);
                     } else {
                         // nemám už tenhle dílek, zkus jiný druh
                         mapPieceIndex = (mapPieceIndex + 1) % mapPiecesCount.length;
@@ -141,85 +154,114 @@ namespace Catacombs {
                 }
             }
 
-            let placeMapPiece = (x: number, y: number, mapx: number, mapy: number, direction: number) => {
+            let revealMapPiece = (posx: number, posy: number, x: number, y: number, direction: number) => {
                 // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný rozcestník '+'
                 let piece = randomMapPiece(!direction);
                 if (piece == null)
                     return;
                 mapCont.addChild(piece);
-                piece.x = mapx + 2 * unit;
-                piece.y = mapy + 2 * unit;
-                piece.scale = new PIXI.Point(4 * unit / mapPieceSize, 4 * unit / mapPieceSize);
+                piece.x = x + mapPieceSize / 2;
+                piece.y = y + mapPieceSize / 2;
                 let exits = mapPiecesExits[piece.type];
                 let rotation = 0;
                 if (direction) {
                     for (let i = 0; i < 4; i++) {
                         if (direction & exits)
                             break;
-                        rotation -= Math.PI / 2;
-                        exits = exits >> 1;
-                        if (!exits) exits = 0b1000;
+                        rotation += Math.PI / 2;
+                        exits = Utils.scr(exits);
                     }
                 }
                 piece.anchor.set(0.5);
                 piece.rotation = rotation;
-                map.setValue(x, y, piece);
+                piece.exits = exits;
+                map.setValue(posx, posy, piece);
             }
 
             let mapCont = new PIXI.Container();
-            mapCont.fixedWidth = 4 * unit * mapSide;
-            mapCont.fixedHeight = 4 * unit * mapSide;
+            mapCont.fixedWidth = mapPieceSize * mapSide;
+            mapCont.fixedHeight = mapPieceSize * mapSide;
             self.stage.addChild(mapCont);
             let gridSize = mapPiecesLeft;
             for (let i = 0; i < gridSize; i++) {
-                let x = (i % mapSide);
-                let y = Math.floor(i / mapSide);
-                let mapX = x * (unit * 4 + 1);
-                let mapY = y * (unit * 4 + 1);
-                if (x == Math.floor(mapSide / 2) && y == Math.floor(mapSide / 2)) {
-                    placeMapPiece(x, y, mapX, mapY, 0);
+                let posx = (i % mapSide);
+                let posy = Math.floor(i / mapSide);
+                let x = posx * mapPieceSize;
+                let y = posy * mapPieceSize;
+                if (posx == Math.floor(mapSide / 2) && posy == Math.floor(mapSide / 2)) {
+                    revealMapPiece(posx, posy, x, y, 0);
                 } else {
                     let shape = new PIXI.Graphics();
                     shape.beginFill(0x222222);
                     shape.lineStyle(1, 0x000000);
-                    let drawShape = ((i) => {
-                        let ii = i;
-                        return () => {
-                            shape.drawRect(0, 0, 4 * unit, 4 * unit);
-                        };
-                    })(i);
-                    drawShape();
-                    shape.interactive = true;
-                    shape.on("mouseover", () => {
-                        shape.lineStyle(1, 0xaa0000);
-                        drawShape();
-                    });
-                    shape.on("mouseout", () => {
-                        shape.lineStyle(1, 0x000000);
-                        drawShape();
-                    });
-                    shape.on("click", () => {
-                        let direcition = 0;
-                        // přicházím zleva
-                        if (map.getValue(x - 1, y)) direcition = 0b0001;
-                        // přicházím zprava
-                        if (map.getValue(x + 1, y)) direcition = 0b0100;
-                        // přicházím shora
-                        if (map.getValue(x, y - 1)) direcition = 0b1000;
-                        // přicházím zdola
-                        if (map.getValue(x, y + 1)) direcition = 0b0010;
-                        if (direcition) {
-                            placeMapPiece(x, y, shape.x, shape.y, direcition);
-                            mapCont.removeChild(shape);
-                        }
-                    })
+                    shape.drawRect(1, 1, mapPieceSize - 2, mapPieceSize - 2);
                     mapCont.addChild(shape);
-                    shape.x = mapX;
-                    shape.y = mapY;
+                    shape.x = x;
+                    shape.y = y;
                 }
             }
             mapCont.x = self.stage.fixedWidth / 2 - mapCont.fixedWidth / 2;
             mapCont.y = self.stage.fixedHeight / 2 - mapCont.fixedHeight / 2;
+
+            let player = new PlayerSprite(playerTextures[0]);
+            player.posx = Math.floor(mapSide / 2);
+            player.posy = Math.floor(mapSide / 2);
+            self.stage.addChild(player);
+            player.x = self.stage.fixedWidth / 2 - tokenSize / 2;
+            player.y = self.stage.fixedHeight / 2 - tokenSize / 2;
+
+            let movePlayer = (sideFrom, sideTo) => {
+                let posx = player.posx;
+                let posy = player.posy;
+
+                // můžu se posunout tímto směrem z aktuální místnosti?
+                let mapPiece = map.getValue(posx, posy);
+                if (!(sideFrom & mapPiece.exits)) {
+                    return;
+                }
+
+                // můžu se posunout tímto směrem do další místnosti (pokud je objevená)?
+                let tposx = posx;
+                let tposy = posy;
+                switch (sideTo) {
+                    // přicházím zleva
+                    case 0b0001: tposx = posx + 1; break;
+                    // přicházím zprava
+                    case 0b0100: tposx = posx - 1; break;
+                    // přicházím shora
+                    case 0b1000: tposy = posy + 1; break;
+                    // přicházím zdola
+                    case 0b0010: tposy = posy - 1; break;
+                }
+                if (tposx < 0 || tposx >= mapSide || tposy < 0 || tposy >= mapSide)
+                    return;
+                mapPiece = map.getValue(tposx, tposy);
+                if (!mapPiece) {
+                    revealMapPiece(tposx, tposy, tposx * mapPieceSize, tposy * mapPieceSize, sideTo);
+                } else {
+                    if (!(sideTo & mapPiece.exits)) {
+                        return;
+                    }
+                }
+                player.x += (tposx - player.posx) * mapPieceSize;
+                player.y += (tposy - player.posy) * mapPieceSize;
+                player.posx = tposx;
+                player.posy = tposy;
+            }
+
+            let playerUp = () => movePlayer(0b1000, 0b0010);
+            let playerDown = () => movePlayer(0b0010, 0b1000);
+            let playerLeft = () => movePlayer(0b0001, 0b0100);
+            let playerRight = () => movePlayer(0b0100, 0b0001);
+
+            Keyboard.on(37, () => { playerLeft(); });
+            Keyboard.on(65, () => { playerLeft(); });
+            Keyboard.on(38, () => { playerUp(); });
+            Keyboard.on(87, () => { playerUp(); });
+            Keyboard.on(39, () => { playerRight(); });
+            Keyboard.on(68, () => { playerRight(); });
+            Keyboard.on(40, () => { playerDown(); });
+            Keyboard.on(83, () => { playerDown(); });
 
             let ticker = PIXI.ticker.shared;
             ticker.add(() => {
