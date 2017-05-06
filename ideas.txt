@@ -1,0 +1,64 @@
+Varianta všichni proti všem
+	- při každém tahu hráč
+		- započítá útoky netvorů ve stejné místnosti
+		- může posunout sebe o jednu místnost
+		- může provést 1 útok
+		- může posunout jednoho netvora
+		- může udělat libovolný počet nákupů
+	- při každém pohybu
+		- může hráč objevit novou místnost vstupem do ní
+		- má-li lucernu, objeví všechny přilehlé místnosti
+	- objev mísnosti
+		- bere se ze zamýchaného balíčku místnost a přidá se tam, kde hráč objevuje
+		- kostkou/táhnutím z ruky spoluhráče se vylosuje, zda místnost obsahuje poklad a netvora (a jakého)
+	- posuv netvora
+		- každý netvor se dá posunout za jeden tah pouze o 1 místnost
+		- útok netvora se na hráče počítá až když je hráč na tahu
+	- každý netvor má útok a obranu
+		- od útoku se odečítá hráčova zbroj a výsledek je jeho zranění
+		- netvora jde zabít vždy jednou ranou, ale pouze některou ze zbraní
+	- netvorové útok/obrana
+		- zombie 1/0
+		- kostlivec	1/1
+		- žabouch 2/2
+		- trol 3/3
+		- minotaur 4/4
+	- hráč 
+		- má útok 1
+		- obranu 0
+		- ale má 5 životů, které může doplňovat lektvary
+	- zbraně +útok
+		- krumpáč +1 
+		- meč +2
+		- kuše +3 (navíc může střílet na vzdálenost 1 mísnosti)
+	- zbroj +obrana
+		- štít +1
+		- brnění +2
+	- taktika
+		- některé netvory není možné zabít v jednom hráči, takže se s ním musí utkat naráz více hráčů (?)
+		- minotaura není možné v jednom hráči zabít ani s veškerým vybavením
+	- motivace
+		- získávání odměn
+		- skalpy za netvory (?) ... pak by nemělo jít zabíjet netvora ve víc hráčích
+Varianta DungeonMaster
+	- hráči jsou rozdělení na dvě skupiny 
+	- dobrodruzi
+		- získávájí poklady, kupují si vybavení, bojují s netvory
+	- páni katakomb
+		- staví katakomby, pohybují monstry, rozmisťují poklady
+	- netvoři se spawnují dle vzdálenosti od centra mapy (čím dál, tím možnost horšího netvora)
+	- spawn netvora/získání cennosti by mohlo být provedeno i kopáním
+	- master by mohl postavit dungoeon celý rovnou a pak rozmístit tokeny vzůru nohama
+		- hráči by tak nevěděli, co je cennost a co je netvor, ale věděli by, že tam něco je
+	- omezení pro mastera
+		- musí postavit dílky tak, aby se dalo všude dostat (aby neudělal úmyslně malý kroužek a konec)
+			- průchody přes mříže se počítají jako průchod, takže může b
+		- musí rozmístit aspoň 4 cennosti viditelně (bez losování o netvora při sebrání)
+Obecné
+	- losování probíhá losováním tokenů z pytlíku
+	- barevné klíče, barevné truhly a barevné mříže
+	- cennost by hráč nemusel brát rovnou, ale mohl by se rozmyslet
+		- protože až po sebrání cennosti by se losoval netvor
+	- při otvírání truhly si hráč může z losovacího pytlíku vybrat cennost (=dostává nejvyšší, která ještě je)
+	- monstra by se do losovacího balíčku mohla přihazovat dle odkrytých polí
+    - mrtví hráči by se ovládali monstra?
