@@ -13,9 +13,6 @@ namespace Catacombs {
                     let y = mapx * Game.ROOM_IMG_SIZE;
                     if (mapx == Math.floor(this.sideSize / 2) && mapy == Math.floor(this.sideSize / 2)) {
                         let room = this.revealMapPiece(mapx, mapy, 0);
-                        this.mapCont.addChild(room.sprite);
-                        room.sprite.x = x + Game.ROOM_IMG_SIZE / 2;
-                        room.sprite.y = y + Game.ROOM_IMG_SIZE / 2;
                     } else {
                         let shape = new PIXI.Graphics();
                         shape.beginFill(0x222222);
@@ -50,7 +47,34 @@ namespace Catacombs {
             room.sprite.anchor.set(0.5);
             room.sprite.rotation = rotation;
             room.rotatedExits = exits;
+            this.mapCont.addChild(room.sprite);
+            room.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 0.5);
+            room.sprite.y = Game.ROOM_IMG_SIZE * (mapy + 0.5)
             this.rooms.setValue(mapx, mapy, room);
+
+            if (!direction)
+                return room;
+                
+            // obsah místnosti
+            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + 10));
+            let limit = MonsterDef.totalAvailableInstances;
+            if (rnd < limit) {
+                let center = Math.floor(this.sideSize / 2);
+                let centerDist = Math.max(Math.abs(mapx - center), Math.abs(mapy - center));
+                // snižuje tier dle blízkosti ke středu
+                // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
+                // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
+                let monster = Monster.createRandom(MonsterDef.monsterDefs.length - (center - centerDist));
+                room.monsters.push(monster);
+                this.mapCont.addChild(monster.sprite);
+                monster.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 0.25);
+                monster.sprite.y = Game.ROOM_IMG_SIZE * (mapy + 0.25);
+            } else {
+                limit += 10;
+                if (rnd < limit) {
+                    // nic
+                }
+            }
             return room;
         }
     }
@@ -58,6 +82,8 @@ namespace Catacombs {
     export class Room {
         public sprite: PIXI.Sprite;
         public rotatedExits: number;
+        public players = new Array<Player>();
+        public monsters = new Array<Monster>();
         constructor(public def: RoomDef, public mapx: number, public mapy: number) {
             this.sprite = new PIXI.Sprite(def.tex);
         }

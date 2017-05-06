@@ -44,9 +44,6 @@ var Catacombs;
             room = this.map.rooms.getValue(tmapx, tmapy);
             if (!room) {
                 room = this.map.revealMapPiece(tmapx, tmapy, sideTo);
-                this.map.mapCont.addChild(room.sprite);
-                room.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (tmapx + 0.5);
-                room.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * (tmapy + 0.5);
             }
             else {
                 if (!(sideTo & room.rotatedExits)) {

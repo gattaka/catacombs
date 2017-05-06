@@ -1,51 +1,51 @@
 var Catacombs;
 (function (Catacombs) {
     var MonsterDef = (function () {
-        function MonsterDef(name, tier, attack, defense, count) {
+        function MonsterDef(name, tier, attack, defense, availableInstances) {
             this.name = name;
             this.tier = tier;
             this.attack = attack;
             this.defense = defense;
-            this.count = count;
+            this.availableInstances = availableInstances;
             this.cardTexture = PIXI.Texture.fromImage('images/' + name + '.png');
             this.tokenTexture = PIXI.Texture.fromImage('images/' + name + '_token.png');
+            MonsterDef.totalAvailableInstances += availableInstances;
         }
-        MonsterDef.register = function (name, tier, attack, defense, count) {
-            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(name, tier, attack, defense, count);
+        MonsterDef.register = function (name, tier, attack, defense, availableInstances) {
+            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(name, tier, attack, defense, availableInstances);
         };
         return MonsterDef;
     }());
+    MonsterDef.totalAvailableInstances = 0;
     MonsterDef.monsterDefs = new Array();
     Catacombs.MonsterDef = MonsterDef;
     var Monster = (function () {
-        function Monster(definition, card, token) {
+        function Monster(definition, sprite) {
             this.definition = definition;
-            this.card = card;
-            this.token = token;
+            this.sprite = sprite;
         }
         Monster.createRandom = function (maxTier) {
             var m = Math.floor(Math.random() * maxTier);
             for (var i = 0; i < maxTier; i++) {
-                if (Monster.counter[m] == undefined || Monster.counter[m] > 0)
+                var def = MonsterDef.monsterDefs[m];
+                if (def.availableInstances > 0)
                     return Monster.create(MonsterDef.monsterDefs[m]);
                 m = (m + 1) % maxTier;
             }
             return null;
         };
         Monster.create = function (def) {
-            if (Monster.counter[def.tier - 1] !== undefined) {
-                if (Monster.counter[def.tier - 1] == 0)
-                    return null;
+            if (def.availableInstances == 0) {
+                return null;
             }
             else {
-                Monster.counter[def.tier - 1] = def.count;
+                def.availableInstances--;
+                MonsterDef.totalAvailableInstances--;
             }
-            Monster.counter[def.tier - 1]--;
-            return new Monster(def, new PIXI.Sprite(def.cardTexture), new PIXI.Sprite(def.tokenTexture));
+            return new Monster(def, new PIXI.Sprite(def.tokenTexture));
         };
         return Monster;
     }());
-    Monster.counter = new Array();
     Catacombs.Monster = Monster;
     // netvoři
     MonsterDef.register("zombie", 1, 1, 0, 5);

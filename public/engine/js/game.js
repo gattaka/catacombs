@@ -79,12 +79,6 @@ var Catacombs;
             this.stage.addChild(lmenu);
             lmenu.x = 10;
             lmenu.y = 10;
-            Catacombs.MonsterDef.monsterDefs.forEach(function (v, i) {
-                var m = Catacombs.Monster.create(v);
-                lmenu.addChild(m.token);
-                m.token.x = i * (Game.TOKEN_IMG_SIZE + 5);
-                m.token.y = 10;
-            });
             // rmenu
             var rmenu = createMenu();
             this.stage.addChild(rmenu);

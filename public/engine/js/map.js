@@ -13,9 +13,6 @@ var Catacombs;
                     var y = mapx * Catacombs.Game.ROOM_IMG_SIZE;
                     if (mapx == Math.floor(this.sideSize / 2) && mapy == Math.floor(this.sideSize / 2)) {
                         var room = this.revealMapPiece(mapx, mapy, 0);
-                        this.mapCont.addChild(room.sprite);
-                        room.sprite.x = x + Catacombs.Game.ROOM_IMG_SIZE / 2;
-                        room.sprite.y = y + Catacombs.Game.ROOM_IMG_SIZE / 2;
                     }
                     else {
                         var shape = new PIXI.Graphics();
@@ -50,7 +47,33 @@ var Catacombs;
             room.sprite.anchor.set(0.5);
             room.sprite.rotation = rotation;
             room.rotatedExits = exits;
+            this.mapCont.addChild(room.sprite);
+            room.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 0.5);
+            room.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * (mapy + 0.5);
             this.rooms.setValue(mapx, mapy, room);
+            if (!direction)
+                return room;
+            // obsah místnosti
+            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + 10));
+            var limit = Catacombs.MonsterDef.totalAvailableInstances;
+            if (rnd < limit) {
+                var center = Math.floor(this.sideSize / 2);
+                var centerDist = Math.max(Math.abs(mapx - center), Math.abs(mapy - center));
+                // snižuje tier dle blízkosti ke středu
+                // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
+                // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
+                var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (center - centerDist));
+                room.monsters.push(monster);
+                this.mapCont.addChild(monster.sprite);
+                monster.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 0.25);
+                monster.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * (mapy + 0.25);
+            }
+            else {
+                limit += 10;
+                if (rnd < limit) {
+                    // nic
+                }
+            }
             return room;
         };
         return Map;
@@ -61,6 +84,8 @@ var Catacombs;
             this.def = def;
             this.mapx = mapx;
             this.mapy = mapy;
+            this.players = new Array();
+            this.monsters = new Array();
             this.sprite = new PIXI.Sprite(def.tex);
         }
         return Room;

@@ -57,7 +57,6 @@ namespace Catacombs {
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
 
-
             // poklady
             let treasuresCount = [15, 10, 5, 2];
             let treasuresTextures = [];
@@ -116,13 +115,6 @@ namespace Catacombs {
             this.stage.addChild(lmenu);
             lmenu.x = 10;
             lmenu.y = 10;
-
-            MonsterDef.monsterDefs.forEach((v, i) => {
-                let m = Monster.create(v);
-                lmenu.addChild(m.token);
-                m.token.x = i * (Game.TOKEN_IMG_SIZE + 5);
-                m.token.y = 10;
-            });
 
             // rmenu
             let rmenu = createMenu();
