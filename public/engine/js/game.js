@@ -27,23 +27,6 @@ var Catacombs;
             self.stage = new PIXI.Container();
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
-            // poklady
-            var treasuresCount = [15, 10, 5, 2];
-            var treasuresTextures = [];
-            var treasureToken = PIXI.Texture.fromImage('images/gold_token.png', false);
-            for (var i = 1; i <= 4; i++)
-                treasuresTextures.push(PIXI.Texture.fromImage('images/gold' + i + '.png', false));
-            // vybavení
-            var itemsCount = [1, 1, 1, 1, 1, 1, 1, 1];
-            var itemsTextures = [];
-            itemsTextures.push(PIXI.Texture.fromImage('images/key.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/pickaxe.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/sword.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/lantern.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/crossbow.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/armor.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/shield.png', false));
-            itemsTextures.push(PIXI.Texture.fromImage('images/potion.png', false));
             var map = new Catacombs.Map(7);
             self.stage.addChild(map.mapCont);
             map.mapCont.x = self.stage.fixedWidth / 2 - map.mapCont.fixedWidth / 2;

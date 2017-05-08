@@ -11,6 +11,7 @@ namespace Catacombs {
         }
 
         public health: number;
+        public treasure:number;
         public inventory = new Array<string>();
         public mapx: number;
         public mapy: number;

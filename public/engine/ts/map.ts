@@ -59,7 +59,7 @@ namespace Catacombs {
                 return room;
 
             // obsah místnosti
-            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + 10));
+            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + ItemDef.totalAvailableInstances));
             let limit = MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
                 let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
@@ -69,12 +69,16 @@ namespace Catacombs {
                 let monster = Monster.createRandom(MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
                 this.mapCont.addChild(monster.sprite);
-                monster.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 0.25);
-                monster.sprite.y = Game.ROOM_IMG_SIZE * (mapy + 0.25);
+                monster.sprite.x = Game.ROOM_IMG_SIZE * mapx + 10;
+                monster.sprite.y = Game.ROOM_IMG_SIZE * mapy + 10;
             } else {
-                limit += 10;
+                limit += ItemDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    // nic
+                    let item = Item.createRandom();
+                    room.items.push(item);
+                    this.mapCont.addChild(item.sprite);
+                    item.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 1) - 10 - Game.TOKEN_IMG_SIZE;
+                    item.sprite.y = Game.ROOM_IMG_SIZE * mapy + 10;
                 }
             }
             return room;
@@ -86,6 +90,7 @@ namespace Catacombs {
         public rotatedExits: number;
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
+        public items = new Array<Item>();
         constructor(public def: RoomDef, public mapx: number, public mapy: number) {
             this.sprite = new PIXI.Sprite(def.tex);
         }

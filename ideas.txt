@@ -40,7 +40,7 @@ Varianta všichni proti všem
 	- motivace
 		- získávání odměn
 		- skalpy za netvory (?) ... pak by nemělo jít zabíjet netvora ve víc hráčích
-Varianta DungeonMaster
+Varianta DungeonKeeper
 	- hráči jsou rozdělení na dvě skupiny 
 	- dobrodruzi
 		- získávájí poklady, kupují si vybavení, bojují s netvory
@@ -62,3 +62,5 @@ Obecné
 	- při otvírání truhly si hráč může z losovacího pytlíku vybrat cennost (=dostává nejvyšší, která ještě je)
 	- monstra by se do losovacího balíčku mohla přihazovat dle odkrytých polí
     - mrtví hráči by se ovládali monstra?
+	- místo pohybu může hráč zvolit kopání, jedno kolo nehraje a pak si může vylosovat odměnu
+	- mříž blokuje jenom netvory?

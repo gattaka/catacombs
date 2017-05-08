@@ -55,7 +55,7 @@ var Catacombs;
             if (!direction)
                 return room;
             // obsah místnosti
-            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + 10));
+            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.ItemDef.totalAvailableInstances));
             var limit = Catacombs.MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
                 var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
@@ -65,13 +65,17 @@ var Catacombs;
                 var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
                 this.mapCont.addChild(monster.sprite);
-                monster.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 0.25);
-                monster.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * (mapy + 0.25);
+                monster.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * mapx + 10;
+                monster.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * mapy + 10;
             }
             else {
-                limit += 10;
+                limit += Catacombs.ItemDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    // nic
+                    var item = Catacombs.Item.createRandom();
+                    room.items.push(item);
+                    this.mapCont.addChild(item.sprite);
+                    item.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 1) - 10 - Catacombs.Game.TOKEN_IMG_SIZE;
+                    item.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * mapy + 10;
                 }
             }
             return room;
@@ -86,6 +90,7 @@ var Catacombs;
             this.mapy = mapy;
             this.players = new Array();
             this.monsters = new Array();
+            this.items = new Array();
             this.sprite = new PIXI.Sprite(def.tex);
         }
         return Room;
