@@ -7,11 +7,12 @@ var Catacombs;
             this.mapCont = new PIXI.Container();
             this.mapCont.fixedWidth = Catacombs.Game.ROOM_IMG_SIZE * this.sideSize;
             this.mapCont.fixedHeight = Catacombs.Game.ROOM_IMG_SIZE * this.sideSize;
+            this.center = Math.floor(this.sideSize / 2);
             for (var mapy = 0; mapy < this.sideSize; mapy++) {
                 for (var mapx = 0; mapx < this.sideSize; mapx++) {
                     var x = mapy * Catacombs.Game.ROOM_IMG_SIZE;
                     var y = mapx * Catacombs.Game.ROOM_IMG_SIZE;
-                    if (mapx == Math.floor(this.sideSize / 2) && mapy == Math.floor(this.sideSize / 2)) {
+                    if (mapx == this.center && mapy == this.center) {
                         var room = this.revealMapPiece(mapx, mapy, 0);
                     }
                     else {
@@ -57,12 +58,11 @@ var Catacombs;
             var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + 10));
             var limit = Catacombs.MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
-                var center = Math.floor(this.sideSize / 2);
-                var centerDist = Math.max(Math.abs(mapx - center), Math.abs(mapy - center));
+                var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
-                var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (center - centerDist));
+                var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
                 this.mapCont.addChild(monster.sprite);
                 monster.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 0.25);

@@ -3,15 +3,18 @@ namespace Catacombs {
     export class Map {
         public rooms = new Array2D<Room>();
         public mapCont = new PIXI.Container();
+        public center: number;
         constructor(public sideSize: number) {
             this.mapCont.fixedWidth = Game.ROOM_IMG_SIZE * this.sideSize;
             this.mapCont.fixedHeight = Game.ROOM_IMG_SIZE * this.sideSize;
+
+            this.center = Math.floor(this.sideSize / 2);
 
             for (let mapy = 0; mapy < this.sideSize; mapy++) {
                 for (let mapx = 0; mapx < this.sideSize; mapx++) {
                     let x = mapy * Game.ROOM_IMG_SIZE;
                     let y = mapx * Game.ROOM_IMG_SIZE;
-                    if (mapx == Math.floor(this.sideSize / 2) && mapy == Math.floor(this.sideSize / 2)) {
+                    if (mapx == this.center && mapy == this.center) {
                         let room = this.revealMapPiece(mapx, mapy, 0);
                     } else {
                         let shape = new PIXI.Graphics();
@@ -54,17 +57,16 @@ namespace Catacombs {
 
             if (!direction)
                 return room;
-                
+
             // obsah místnosti
             let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + 10));
             let limit = MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
-                let center = Math.floor(this.sideSize / 2);
-                let centerDist = Math.max(Math.abs(mapx - center), Math.abs(mapy - center));
+                let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
-                let monster = Monster.createRandom(MonsterDef.monsterDefs.length - (center - centerDist));
+                let monster = Monster.createRandom(MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
                 this.mapCont.addChild(monster.sprite);
                 monster.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 0.25);

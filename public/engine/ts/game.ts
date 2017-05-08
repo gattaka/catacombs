@@ -81,22 +81,6 @@ namespace Catacombs {
             map.mapCont.x = self.stage.fixedWidth / 2 - map.mapCont.fixedWidth / 2;
             map.mapCont.y = self.stage.fixedHeight / 2 - map.mapCont.fixedHeight / 2;
 
-            let player = Player.create(map);
-            player.mapx = Math.floor(map.sideSize / 2);
-            player.mapy = Math.floor(map.sideSize / 2);
-            self.stage.addChild(player.token);
-            player.token.x = self.stage.fixedWidth / 2 - Game.TOKEN_IMG_SIZE / 2;
-            player.token.y = self.stage.fixedHeight / 2 - Game.TOKEN_IMG_SIZE / 2;
-
-            Keyboard.on(37, () => { player.left(); });
-            Keyboard.on(65, () => { player.left(); });
-            Keyboard.on(38, () => { player.up(); });
-            Keyboard.on(87, () => { player.up(); });
-            Keyboard.on(39, () => { player.right(); });
-            Keyboard.on(68, () => { player.right(); });
-            Keyboard.on(40, () => { player.down(); });
-            Keyboard.on(83, () => { player.down(); });
-
             // Menu
             let createMenu = (): PIXI.Container => {
                 let menu = new PIXI.Container();
@@ -121,6 +105,40 @@ namespace Catacombs {
             this.stage.addChild(rmenu);
             rmenu.x = this.stage.fixedWidth - 10 - rmenu.fixedWidth;
             rmenu.y = 10;
+
+            let activeHgl = new PIXI.Graphics();
+            activeHgl.beginFill(0xffff00);
+            let radius = Game.TOKEN_IMG_SIZE / 2 + 2
+            activeHgl.drawCircle(0, 0, radius);
+            activeHgl.pivot.set(-radius, -radius);
+            rmenu.addChild(activeHgl);
+
+            let players = new Array<Player>();
+            for (let i = 0; i < 4; i++) {
+                let player = Player.create(map);
+                self.stage.addChild(player.token);
+                player.token.x = self.stage.fixedWidth / 2 - Game.TOKEN_IMG_SIZE / 2;
+                player.token.y = self.stage.fixedHeight / 2 - Game.TOKEN_IMG_SIZE / 2;
+                players.push(player);
+                let playerMenuIcon = new PIXI.Sprite(player.token.texture);
+                playerMenuIcon.interactive = true;
+                playerMenuIcon.on("click", () => {
+                    players.forEach((p) => p.active = false);
+                    players[player.playerID].active = true;
+                    activeHgl.y = playerMenuIcon.y - 2;
+                });
+
+                rmenu.addChild(playerMenuIcon);
+                playerMenuIcon.x = 10;
+                playerMenuIcon.y = 10 + player.playerID * (Game.TOKEN_IMG_SIZE + 20);
+
+                if (i == 0) {
+                    player.active = true;
+                    activeHgl.x = playerMenuIcon.x - 2;
+                    activeHgl.y = playerMenuIcon.y - 2;
+                }
+
+            }
 
             let ticker = PIXI.ticker.shared;
             ticker.add(() => {

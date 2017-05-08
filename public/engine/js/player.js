@@ -1,18 +1,36 @@
 var Catacombs;
 (function (Catacombs) {
     var Player = (function () {
-        function Player(token, map) {
+        function Player(token, map, playerID) {
+            var _this = this;
             this.token = token;
             this.map = map;
+            this.playerID = playerID;
             this.inventory = new Array();
+            // je na tahu?
+            this.active = false;
+            this.mapx = map.center;
+            this.mapy = map.center;
+            this.map.rooms.getValue(this.mapx, this.mapy).players[this.playerID] = this;
+            Catacombs.Keyboard.on(37, function () { _this.left(); });
+            Catacombs.Keyboard.on(65, function () { _this.left(); });
+            Catacombs.Keyboard.on(38, function () { _this.up(); });
+            Catacombs.Keyboard.on(87, function () { _this.up(); });
+            Catacombs.Keyboard.on(39, function () { _this.right(); });
+            Catacombs.Keyboard.on(68, function () { _this.right(); });
+            Catacombs.Keyboard.on(40, function () { _this.down(); });
+            Catacombs.Keyboard.on(83, function () { _this.down(); });
         }
         Player.create = function (map) {
             if (Player.playersCount > 4)
                 return null;
+            var player = new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map, Player.playersCount);
             Player.playersCount++;
-            return new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map);
+            return player;
         };
         Player.prototype.move = function (sideFrom, sideTo) {
+            if (!this.active)
+                return;
             // můžu se posunout tímto směrem z aktuální místnosti?
             var room = this.map.rooms.getValue(this.mapx, this.mapy);
             if (!(sideFrom & room.rotatedExits)) {
@@ -52,6 +70,10 @@ var Catacombs;
             }
             this.token.x += (tmapx - this.mapx) * Catacombs.Game.ROOM_IMG_SIZE;
             this.token.y += (tmapy - this.mapy) * Catacombs.Game.ROOM_IMG_SIZE;
+            var oldRoom = this.map.rooms.getValue(this.mapx, this.mapy);
+            if (oldRoom)
+                oldRoom.players[this.playerID] = null;
+            room.players[this.playerID] = this;
             this.mapx = tmapx;
             this.mapy = tmapy;
         };

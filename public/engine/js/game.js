@@ -48,20 +48,6 @@ var Catacombs;
             self.stage.addChild(map.mapCont);
             map.mapCont.x = self.stage.fixedWidth / 2 - map.mapCont.fixedWidth / 2;
             map.mapCont.y = self.stage.fixedHeight / 2 - map.mapCont.fixedHeight / 2;
-            var player = Catacombs.Player.create(map);
-            player.mapx = Math.floor(map.sideSize / 2);
-            player.mapy = Math.floor(map.sideSize / 2);
-            self.stage.addChild(player.token);
-            player.token.x = self.stage.fixedWidth / 2 - Game.TOKEN_IMG_SIZE / 2;
-            player.token.y = self.stage.fixedHeight / 2 - Game.TOKEN_IMG_SIZE / 2;
-            Catacombs.Keyboard.on(37, function () { player.left(); });
-            Catacombs.Keyboard.on(65, function () { player.left(); });
-            Catacombs.Keyboard.on(38, function () { player.up(); });
-            Catacombs.Keyboard.on(87, function () { player.up(); });
-            Catacombs.Keyboard.on(39, function () { player.right(); });
-            Catacombs.Keyboard.on(68, function () { player.right(); });
-            Catacombs.Keyboard.on(40, function () { player.down(); });
-            Catacombs.Keyboard.on(83, function () { player.down(); });
             // Menu
             var createMenu = function () {
                 var menu = new PIXI.Container();
@@ -84,6 +70,38 @@ var Catacombs;
             this.stage.addChild(rmenu);
             rmenu.x = this.stage.fixedWidth - 10 - rmenu.fixedWidth;
             rmenu.y = 10;
+            var activeHgl = new PIXI.Graphics();
+            activeHgl.beginFill(0xffff00);
+            var radius = Game.TOKEN_IMG_SIZE / 2 + 2;
+            activeHgl.drawCircle(0, 0, radius);
+            activeHgl.pivot.set(-radius, -radius);
+            rmenu.addChild(activeHgl);
+            var players = new Array();
+            var _loop_1 = function (i) {
+                var player = Catacombs.Player.create(map);
+                self.stage.addChild(player.token);
+                player.token.x = self.stage.fixedWidth / 2 - Game.TOKEN_IMG_SIZE / 2;
+                player.token.y = self.stage.fixedHeight / 2 - Game.TOKEN_IMG_SIZE / 2;
+                players.push(player);
+                var playerMenuIcon = new PIXI.Sprite(player.token.texture);
+                playerMenuIcon.interactive = true;
+                playerMenuIcon.on("click", function () {
+                    players.forEach(function (p) { return p.active = false; });
+                    players[player.playerID].active = true;
+                    activeHgl.y = playerMenuIcon.y - 2;
+                });
+                rmenu.addChild(playerMenuIcon);
+                playerMenuIcon.x = 10;
+                playerMenuIcon.y = 10 + player.playerID * (Game.TOKEN_IMG_SIZE + 20);
+                if (i == 0) {
+                    player.active = true;
+                    activeHgl.x = playerMenuIcon.x - 2;
+                    activeHgl.y = playerMenuIcon.y - 2;
+                }
+            };
+            for (var i = 0; i < 4; i++) {
+                _loop_1(i);
+            }
             var ticker = PIXI.ticker.shared;
             ticker.add(function () {
                 statsFPS.begin();

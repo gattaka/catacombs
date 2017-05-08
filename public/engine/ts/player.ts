@@ -5,18 +5,37 @@ namespace Catacombs {
         public static create(map: Map): Player {
             if (Player.playersCount > 4)
                 return null;
+            let player = new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map, Player.playersCount);
             Player.playersCount++;
-            return new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map);
+            return player;
         }
 
         public health: number;
         public inventory = new Array<string>();
         public mapx: number;
         public mapy: number;
+        // je na tahu?
+        public active = false;
 
-        private constructor(public token: PIXI.Sprite, private map: Map) { }
+        private constructor(public token: PIXI.Sprite, private map: Map, public playerID: number) {
+            this.mapx = map.center;
+            this.mapy = map.center;
+            this.map.rooms.getValue(this.mapx, this.mapy).players[this.playerID] = this;
+
+            Keyboard.on(37, () => { this.left(); });
+            Keyboard.on(65, () => { this.left(); });
+            Keyboard.on(38, () => { this.up(); });
+            Keyboard.on(87, () => { this.up(); });
+            Keyboard.on(39, () => { this.right(); });
+            Keyboard.on(68, () => { this.right(); });
+            Keyboard.on(40, () => { this.down(); });
+            Keyboard.on(83, () => { this.down(); });
+        }
 
         move(sideFrom: number, sideTo: number) {
+            if (!this.active)
+                return;
+
             // můžu se posunout tímto směrem z aktuální místnosti?
             let room = this.map.rooms.getValue(this.mapx, this.mapy);
             if (!(sideFrom & room.rotatedExits)) {
@@ -48,6 +67,10 @@ namespace Catacombs {
             }
             this.token.x += (tmapx - this.mapx) * Game.ROOM_IMG_SIZE;
             this.token.y += (tmapy - this.mapy) * Game.ROOM_IMG_SIZE;
+            let oldRoom = this.map.rooms.getValue(this.mapx, this.mapy);
+            if (oldRoom)
+                oldRoom.players[this.playerID] = null;
+            room.players[this.playerID] = this;
             this.mapx = tmapx;
             this.mapy = tmapy;
         }
