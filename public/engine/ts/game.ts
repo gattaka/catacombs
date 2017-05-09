@@ -119,6 +119,11 @@ namespace Catacombs {
                     activeHgl.y = playerMenuIcon.y - 2;
                 }
 
+                rmenu.addChild(player.invetoryUI);
+                player.invetoryUI.x = playerMenuIcon.x + Game.TOKEN_IMG_SIZE + 10;
+                player.invetoryUI.y = playerMenuIcon.y;
+                // player.invetoryUI.fixedWidth = Game.TOKEN_IMG_SIZE;
+                // player.invetoryUI.fixedHeight = Game.TOKEN_IMG_SIZE;
             }
 
             let ticker = PIXI.ticker.shared;

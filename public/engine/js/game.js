@@ -81,6 +81,11 @@ var Catacombs;
                     activeHgl.x = playerMenuIcon.x - 2;
                     activeHgl.y = playerMenuIcon.y - 2;
                 }
+                rmenu.addChild(player.invetoryUI);
+                player.invetoryUI.x = playerMenuIcon.x + Game.TOKEN_IMG_SIZE + 10;
+                player.invetoryUI.y = playerMenuIcon.y;
+                // player.invetoryUI.fixedWidth = Game.TOKEN_IMG_SIZE;
+                // player.invetoryUI.fixedHeight = Game.TOKEN_IMG_SIZE;
             };
             for (var i = 0; i < 4; i++) {
                 _loop_1(i);
