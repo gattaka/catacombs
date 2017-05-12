@@ -1,59 +1,29 @@
 var Catacombs;
 (function (Catacombs) {
     var Map = (function () {
-        function Map(sideSize) {
+        function Map(sideSize, proc) {
             this.sideSize = sideSize;
+            this.proc = proc;
             this.rooms = new Catacombs.Array2D();
-            this.mapCont = new PIXI.Container();
-            this.mapCont.fixedWidth = Catacombs.Game.ROOM_IMG_SIZE * this.sideSize;
-            this.mapCont.fixedHeight = Catacombs.Game.ROOM_IMG_SIZE * this.sideSize;
             this.center = Math.floor(this.sideSize / 2);
-            for (var mapy = 0; mapy < this.sideSize; mapy++) {
-                for (var mapx = 0; mapx < this.sideSize; mapx++) {
-                    var x = mapy * Catacombs.Game.ROOM_IMG_SIZE;
-                    var y = mapx * Catacombs.Game.ROOM_IMG_SIZE;
-                    if (mapx == this.center && mapy == this.center) {
-                        var room = this.revealMapPiece(mapx, mapy, 0);
-                    }
-                    else {
-                        var shape = new PIXI.Graphics();
-                        shape.beginFill(0x222222);
-                        shape.lineStyle(1, 0x000000);
-                        shape.drawRect(1, 1, Catacombs.Game.ROOM_IMG_SIZE - 2, Catacombs.Game.ROOM_IMG_SIZE - 2);
-                        this.mapCont.addChild(shape);
-                        shape.x = x;
-                        shape.y = y;
-                    }
-                }
-            }
+            var def = RoomDef.startRoom();
+            var room = new Room(def, this.center, this.center, def.exits, 0);
+            this.rooms.setValue(this.center, this.center, room);
         }
         Map.prototype.revealMapPiece = function (mapx, mapy, direction) {
             // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný
-            var roomDef = direction ? RoomDef.rndAvailableRoom() : RoomDef.startRoom();
+            var roomDef = RoomDef.rndAvailableRoom();
             if (roomDef == null)
                 return;
-            var room = new Room(roomDef, mapx, mapy);
-            roomDef.availableInstances--;
-            RoomDef.totalAvailableInstances--;
             var exits = roomDef.exits;
             var rotation = 0;
-            if (direction) {
-                for (var i = 0; i < 4; i++) {
-                    if (direction & exits)
-                        break;
-                    rotation += Math.PI / 2;
-                    exits = Catacombs.Utils.scr(exits);
-                }
+            for (var i = 0; i < 4; i++) {
+                if (direction & exits)
+                    break;
+                rotation += Math.PI / 2;
+                exits = Catacombs.Utils.scr(exits);
             }
-            room.sprite.anchor.set(0.5);
-            room.sprite.rotation = rotation;
-            room.rotatedExits = exits;
-            this.mapCont.addChild(room.sprite);
-            room.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 0.5);
-            room.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * (mapy + 0.5);
-            this.rooms.setValue(mapx, mapy, room);
-            if (!direction)
-                return room;
+            var room = new Room(roomDef, mapx, mapy, exits, rotation);
             // obsah místnosti
             var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.ItemDef.totalAvailableInstances));
             var limit = Catacombs.MonsterDef.totalAvailableInstances;
@@ -64,34 +34,35 @@ var Catacombs;
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
-                this.mapCont.addChild(monster.sprite);
-                monster.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * mapx + 10;
-                monster.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * mapy + 10;
+                this.proc.monsters.push(monster);
             }
             else {
                 limit += Catacombs.ItemDef.totalAvailableInstances;
                 if (rnd < limit) {
                     var item = Catacombs.Item.createRandom();
                     room.items.push(item);
-                    this.mapCont.addChild(item.sprite);
-                    item.sprite.x = Catacombs.Game.ROOM_IMG_SIZE * (mapx + 1) - 10 - Catacombs.Game.TOKEN_IMG_SIZE;
-                    item.sprite.y = Catacombs.Game.ROOM_IMG_SIZE * mapy + 10;
+                    this.proc.items.push(item);
                 }
             }
+            this.rooms.setValue(mapx, mapy, room);
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.TupleEventPayload(Catacombs.EventType.ROOM_DISCOVERED, mapx, mapy));
             return room;
         };
         return Map;
     }());
     Catacombs.Map = Map;
     var Room = (function () {
-        function Room(def, mapx, mapy) {
+        function Room(def, mapx, mapy, rotatedExits, rotation) {
             this.def = def;
             this.mapx = mapx;
             this.mapy = mapy;
+            this.rotatedExits = rotatedExits;
+            this.rotation = rotation;
             this.players = new Array();
             this.monsters = new Array();
             this.items = new Array();
-            this.sprite = new PIXI.Sprite(def.tex);
+            def.availableInstances--;
+            RoomDef.totalAvailableInstances--;
         }
         return Room;
     }());

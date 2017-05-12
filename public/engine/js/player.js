@@ -1,22 +1,19 @@
 var Catacombs;
 (function (Catacombs) {
     var InventoryItem = (function () {
-        function InventoryItem(key, sprite, amount) {
+        function InventoryItem(name, amount) {
             if (amount === void 0) { amount = 1; }
-            this.key = key;
-            this.sprite = sprite;
+            this.name = name;
             this.amount = amount;
         }
         return InventoryItem;
     }());
     var Player = (function () {
-        function Player(token, map, playerID) {
+        function Player(map, playerID) {
             var _this = this;
-            this.token = token;
             this.map = map;
             this.playerID = playerID;
             this.inventory = {};
-            this.invetoryUI = new PIXI.Container();
             // je na tahu?
             this.active = false;
             this.mapx = map.center;
@@ -34,45 +31,26 @@ var Catacombs;
         Player.create = function (map) {
             if (Player.playersCount > 4)
                 return null;
-            var player = new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map, Player.playersCount);
+            var player = new Player(map, Player.playersCount);
             Player.playersCount++;
             return player;
         };
         Player.prototype.takeItem = function (item) {
-            var invItem = this.inventory[item.definition.key];
+            var invItem = this.inventory[item.def.name];
             if (invItem) {
                 invItem.amount++;
             }
             else {
-                var itemDef = item.definition;
-                invItem = new InventoryItem(item.definition.key, new PIXI.Sprite(itemDef.tokenTexture));
-                this.inventory[item.definition.key] = invItem;
+                var itemDef = item.def;
+                invItem = new InventoryItem(item.def.name);
+                this.inventory[item.def.name] = invItem;
             }
-            this.updateInventoryUI();
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.playerID));
         };
         Player.prototype.useItem = function (key) {
             var item = this.inventory[key];
             item.amount--;
-            this.updateInventoryUI();
-        };
-        Player.prototype.updateInventoryUI = function () {
-            this.invetoryUI.removeChildren();
-            var lastX = 0;
-            for (var key in this.inventory) {
-                var item = this.inventory[key];
-                if (item.amount <= 0)
-                    continue;
-                if (item.amount > 1) {
-                    var text = new PIXI.Text(item.amount + "", { fontFamily: 'Arial', fontSize: 24, fill: 0xff1010 });
-                    this.invetoryUI.addChild(text);
-                    text.x = lastX;
-                    text.y = 2;
-                    lastX += text.width;
-                }
-                this.invetoryUI.addChild(item.sprite);
-                item.sprite.x = lastX;
-                lastX += Catacombs.Game.TOKEN_IMG_SIZE + 15;
-            }
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.playerID));
         };
         Player.prototype.move = function (sideFrom, sideTo) {
             if (!this.active)
@@ -114,18 +92,16 @@ var Catacombs;
                     return;
                 }
             }
-            this.token.x += (tmapx - this.mapx) * Catacombs.Game.ROOM_IMG_SIZE;
-            this.token.y += (tmapy - this.mapy) * Catacombs.Game.ROOM_IMG_SIZE;
             var oldRoom = this.map.rooms.getValue(this.mapx, this.mapy);
             if (oldRoom)
                 oldRoom.players[this.playerID] = null;
             room.players[this.playerID] = this;
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerMovePayload(this.playerID, tmapx, tmapy));
             this.mapx = tmapx;
             this.mapy = tmapy;
             var player = this;
             room.items.splice(0, room.items.length).forEach(function (i) {
                 player.takeItem(i);
-                i.sprite.parent.removeChild(i.sprite);
             });
         };
         Player.prototype.up = function () { this.move(8, 2); };

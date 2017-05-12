@@ -1,17 +1,15 @@
 var Catacombs;
 (function (Catacombs) {
     var ItemDef = (function () {
-        function ItemDef(key, price, availableInstances) {
-            this.key = key;
+        function ItemDef(name, price, availableInstances) {
+            this.name = name;
             this.price = price;
             this.availableInstances = availableInstances;
-            // this.cardTexture = PIXI.Texture.fromImage('images/' + key + '.png');
-            this.tokenTexture = PIXI.Texture.fromImage('images/' + key + '_token.png');
             ItemDef.totalAvailableInstances += availableInstances;
         }
-        ItemDef.register = function (key, price, availableInstances) {
-            ItemDef.itemDefsByKey[key] = new ItemDef(key, price, availableInstances);
-            ItemDef.itemDefsByOrder.push(ItemDef.itemDefsByKey[key]);
+        ItemDef.register = function (name, price, availableInstances) {
+            ItemDef.itemDefsByName[name] = new ItemDef(name, price, availableInstances);
+            ItemDef.itemDefsByOrder.push(ItemDef.itemDefsByName[name]);
         };
         ItemDef.getRandom = function () {
             var m = Math.floor(Math.random() * ItemDef.itemDefsByOrder.length);
@@ -26,13 +24,12 @@ var Catacombs;
         return ItemDef;
     }());
     ItemDef.totalAvailableInstances = 0;
-    ItemDef.itemDefsByKey = {};
+    ItemDef.itemDefsByName = {};
     ItemDef.itemDefsByOrder = [];
     Catacombs.ItemDef = ItemDef;
     var Item = (function () {
-        function Item(definition, sprite) {
-            this.definition = definition;
-            this.sprite = sprite;
+        function Item(def) {
+            this.def = def;
         }
         Item.createRandom = function () {
             return this.create(ItemDef.getRandom());
@@ -45,7 +42,7 @@ var Catacombs;
                 def.availableInstances--;
                 ItemDef.totalAvailableInstances--;
             }
-            return new Item(def, new PIXI.Sprite(def.tokenTexture));
+            return new Item(def);
         };
         return Item;
     }());

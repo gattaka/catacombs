@@ -7,11 +7,7 @@ namespace Catacombs {
             MonsterDef.monsterDefs[tier - 1] = new MonsterDef(name, tier, attack, defense, availableInstances);
         }
 
-        public cardTexture: PIXI.Texture;
-        public tokenTexture: PIXI.Texture;
         private constructor(public name: string, public tier: number, public attack: number, public defense: number, public availableInstances: number) {
-            this.cardTexture = PIXI.Texture.fromImage('images/' + name + '.png');
-            this.tokenTexture = PIXI.Texture.fromImage('images/' + name + '_token.png');
             MonsterDef.totalAvailableInstances += availableInstances;
         }
     }
@@ -35,14 +31,13 @@ namespace Catacombs {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
             }
-            return new Monster(def,
-                new PIXI.Sprite(def.tokenTexture));
+            return new Monster(def);
         }
 
         public mapx: number;
         public mapy: number;
 
-        private constructor(public definition: MonsterDef, public sprite: PIXI.Sprite) {
+        private constructor(public def: MonsterDef) {
         }
     }
 

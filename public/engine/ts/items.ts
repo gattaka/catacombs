@@ -2,11 +2,11 @@ namespace Catacombs {
 
     export class ItemDef {
         public static totalAvailableInstances = 0;
-        public static itemDefsByKey: { [key: string]: ItemDef } = {};
+        public static itemDefsByName: { [name: string]: ItemDef } = {};
         private static itemDefsByOrder = [];
-        public static register(key: string, price: number, availableInstances: number) {
-            ItemDef.itemDefsByKey[key] = new ItemDef(key, price, availableInstances);
-            ItemDef.itemDefsByOrder.push(ItemDef.itemDefsByKey[key]);
+        public static register(name: string, price: number, availableInstances: number) {
+            ItemDef.itemDefsByName[name] = new ItemDef(name, price, availableInstances);
+            ItemDef.itemDefsByOrder.push(ItemDef.itemDefsByName[name]);
         }
 
         public static getRandom(): ItemDef {
@@ -20,11 +20,7 @@ namespace Catacombs {
             return null;
         }
 
-        public cardTexture: PIXI.Texture;
-        public tokenTexture: PIXI.Texture;
-        private constructor(public key: string, public price: number, public availableInstances: number) {
-            // this.cardTexture = PIXI.Texture.fromImage('images/' + key + '.png');
-            this.tokenTexture = PIXI.Texture.fromImage('images/' + key + '_token.png');
+        private constructor(public name: string, public price: number, public availableInstances: number) {
             ItemDef.totalAvailableInstances += availableInstances;
         }
 
@@ -43,14 +39,13 @@ namespace Catacombs {
                 def.availableInstances--;
                 ItemDef.totalAvailableInstances--;
             }
-            return new Item(def,
-                new PIXI.Sprite(def.tokenTexture));
+            return new Item(def);
         }
 
         public mapx: number;
         public mapy: number;
 
-        private constructor(public definition: ItemDef, public sprite: PIXI.Sprite) {
+        private constructor(public def: ItemDef) {
         }
     }
 
@@ -60,5 +55,5 @@ namespace Catacombs {
     ItemDef.register("coins", 15, 5);
     ItemDef.register("amulet", 20, 1);
     ItemDef.register("blue_chest", 20, 1);
-    
+
 }

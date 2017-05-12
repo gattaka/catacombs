@@ -2,8 +2,7 @@ namespace Catacombs {
 
     class InventoryItem {
         constructor(
-            public key: string,
-            public sprite: PIXI.Sprite,
+            public name: string,
             public amount = 1
         ) { }
     }
@@ -13,21 +12,20 @@ namespace Catacombs {
         public static create(map: Map): Player {
             if (Player.playersCount > 4)
                 return null;
-            let player = new Player(new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + Player.playersCount + '.png')), map, Player.playersCount);
+            let player = new Player(map, Player.playersCount);
             Player.playersCount++;
             return player;
         }
 
         public health: number;
         public treasure: number;
-        public inventory: { [key: string]: InventoryItem } = {};
-        public invetoryUI = new PIXI.Container();
+        public inventory: { [name: string]: InventoryItem } = {};
         public mapx: number;
         public mapy: number;
         // je na tahu?
         public active = false;
 
-        private constructor(public token: PIXI.Sprite, private map: Map, public playerID: number) {
+        private constructor(private map: Map, public playerID: number) {
             this.mapx = map.center;
             this.mapy = map.center;
             this.map.rooms.getValue(this.mapx, this.mapy).players[this.playerID] = this;
@@ -43,41 +41,21 @@ namespace Catacombs {
         }
 
         takeItem(item: Item) {
-            let invItem = this.inventory[item.definition.key];
+            let invItem = this.inventory[item.def.name];
             if (invItem) {
                 invItem.amount++;
             } else {
-                let itemDef = item.definition;
-                invItem = new InventoryItem(item.definition.key, new PIXI.Sprite(itemDef.tokenTexture));
-                this.inventory[item.definition.key] = invItem;
+                let itemDef = item.def;
+                invItem = new InventoryItem(item.def.name);
+                this.inventory[item.def.name] = invItem;
             }
-            this.updateInventoryUI();
+            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.playerID));
         }
 
         useItem(key: string) {
             let item = this.inventory[key];
             item.amount--;
-            this.updateInventoryUI();
-        }
-
-        updateInventoryUI() {
-            this.invetoryUI.removeChildren();
-            let lastX = 0;
-            for (let key in this.inventory) {
-                let item = this.inventory[key];
-                if (item.amount <= 0)
-                    continue;
-                if (item.amount > 1) {
-                    let text = new PIXI.Text(item.amount + "", { fontFamily: 'Arial', fontSize: 24, fill: 0xff1010 });
-                    this.invetoryUI.addChild(text);
-                    text.x = lastX;
-                    text.y = 2;
-                    lastX += text.width;
-                }
-                this.invetoryUI.addChild(item.sprite);
-                item.sprite.x = lastX;
-                lastX += Game.TOKEN_IMG_SIZE + 15;
-            }
+            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.playerID));
         }
 
         move(sideFrom: number, sideTo: number) {
@@ -113,18 +91,16 @@ namespace Catacombs {
                     return;
                 }
             }
-            this.token.x += (tmapx - this.mapx) * Game.ROOM_IMG_SIZE;
-            this.token.y += (tmapy - this.mapy) * Game.ROOM_IMG_SIZE;
             let oldRoom = this.map.rooms.getValue(this.mapx, this.mapy);
             if (oldRoom)
                 oldRoom.players[this.playerID] = null;
             room.players[this.playerID] = this;
+            EventBus.getInstance().fireEvent(new PlayerMovePayload(this.playerID, tmapx, tmapy));
             this.mapx = tmapx;
             this.mapy = tmapy;
             let player = this;
             room.items.splice(0, room.items.length).forEach((i: Item) => {
                 player.takeItem(i);
-                i.sprite.parent.removeChild(i.sprite);
             });
         }
 

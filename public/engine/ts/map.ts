@@ -1,62 +1,31 @@
 namespace Catacombs {
 
     export class Map {
+
         public rooms = new Array2D<Room>();
-        public mapCont = new PIXI.Container();
         public center: number;
-        constructor(public sideSize: number) {
-            this.mapCont.fixedWidth = Game.ROOM_IMG_SIZE * this.sideSize;
-            this.mapCont.fixedHeight = Game.ROOM_IMG_SIZE * this.sideSize;
 
+        constructor(public sideSize: number, private proc: Proc) {
             this.center = Math.floor(this.sideSize / 2);
-
-            for (let mapy = 0; mapy < this.sideSize; mapy++) {
-                for (let mapx = 0; mapx < this.sideSize; mapx++) {
-                    let x = mapy * Game.ROOM_IMG_SIZE;
-                    let y = mapx * Game.ROOM_IMG_SIZE;
-                    if (mapx == this.center && mapy == this.center) {
-                        let room = this.revealMapPiece(mapx, mapy, 0);
-                    } else {
-                        let shape = new PIXI.Graphics();
-                        shape.beginFill(0x222222);
-                        shape.lineStyle(1, 0x000000);
-                        shape.drawRect(1, 1, Game.ROOM_IMG_SIZE - 2, Game.ROOM_IMG_SIZE - 2);
-                        this.mapCont.addChild(shape);
-                        shape.x = x;
-                        shape.y = y;
-                    }
-                }
-            }
+            let def = RoomDef.startRoom();
+            let room = new Room(def, this.center, this.center, def.exits, 0);
+            this.rooms.setValue(this.center, this.center, room);
         }
 
         public revealMapPiece(mapx: number, mapy: number, direction: number): Room {
             // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný
-            let roomDef = direction ? RoomDef.rndAvailableRoom() : RoomDef.startRoom();
+            let roomDef = RoomDef.rndAvailableRoom();
             if (roomDef == null)
                 return;
-            let room = new Room(roomDef, mapx, mapy);
-            roomDef.availableInstances--;
-            RoomDef.totalAvailableInstances--;
             let exits = roomDef.exits;
             let rotation = 0;
-            if (direction) {
-                for (let i = 0; i < 4; i++) {
-                    if (direction & exits)
-                        break;
-                    rotation += Math.PI / 2;
-                    exits = Utils.scr(exits);
-                }
+            for (let i = 0; i < 4; i++) {
+                if (direction & exits)
+                    break;
+                rotation += Math.PI / 2;
+                exits = Utils.scr(exits);
             }
-            room.sprite.anchor.set(0.5);
-            room.sprite.rotation = rotation;
-            room.rotatedExits = exits;
-            this.mapCont.addChild(room.sprite);
-            room.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 0.5);
-            room.sprite.y = Game.ROOM_IMG_SIZE * (mapy + 0.5)
-            this.rooms.setValue(mapx, mapy, room);
-
-            if (!direction)
-                return room;
+            let room = new Room(roomDef, mapx, mapy, exits, rotation);
 
             // obsah místnosti
             let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + ItemDef.totalAvailableInstances));
@@ -68,31 +37,30 @@ namespace Catacombs {
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 let monster = Monster.createRandom(MonsterDef.monsterDefs.length - (this.center - centerDist));
                 room.monsters.push(monster);
-                this.mapCont.addChild(monster.sprite);
-                monster.sprite.x = Game.ROOM_IMG_SIZE * mapx + 10;
-                monster.sprite.y = Game.ROOM_IMG_SIZE * mapy + 10;
+                this.proc.monsters.push(monster);
             } else {
                 limit += ItemDef.totalAvailableInstances;
                 if (rnd < limit) {
                     let item = Item.createRandom();
                     room.items.push(item);
-                    this.mapCont.addChild(item.sprite);
-                    item.sprite.x = Game.ROOM_IMG_SIZE * (mapx + 1) - 10 - Game.TOKEN_IMG_SIZE;
-                    item.sprite.y = Game.ROOM_IMG_SIZE * mapy + 10;
+                    this.proc.items.push(item);
                 }
             }
+
+            this.rooms.setValue(mapx, mapy, room);
+            EventBus.getInstance().fireEvent(new TupleEventPayload(EventType.ROOM_DISCOVERED, mapx, mapy));
+
             return room;
         }
     }
 
     export class Room {
-        public sprite: PIXI.Sprite;
-        public rotatedExits: number;
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
         public items = new Array<Item>();
-        constructor(public def: RoomDef, public mapx: number, public mapy: number) {
-            this.sprite = new PIXI.Sprite(def.tex);
+        constructor(public def: RoomDef, public mapx: number, public mapy: number, public rotatedExits: number, public rotation: number) {
+            def.availableInstances--;
+            RoomDef.totalAvailableInstances--;
         }
     }
 

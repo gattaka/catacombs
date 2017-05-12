@@ -7,8 +7,6 @@ var Catacombs;
             this.attack = attack;
             this.defense = defense;
             this.availableInstances = availableInstances;
-            this.cardTexture = PIXI.Texture.fromImage('images/' + name + '.png');
-            this.tokenTexture = PIXI.Texture.fromImage('images/' + name + '_token.png');
             MonsterDef.totalAvailableInstances += availableInstances;
         }
         MonsterDef.register = function (name, tier, attack, defense, availableInstances) {
@@ -20,9 +18,8 @@ var Catacombs;
     MonsterDef.monsterDefs = new Array();
     Catacombs.MonsterDef = MonsterDef;
     var Monster = (function () {
-        function Monster(definition, sprite) {
-            this.definition = definition;
-            this.sprite = sprite;
+        function Monster(def) {
+            this.def = def;
         }
         Monster.createRandom = function (maxTier) {
             var m = Math.floor(Math.random() * maxTier);
@@ -42,7 +39,7 @@ var Catacombs;
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
             }
-            return new Monster(def, new PIXI.Sprite(def.tokenTexture));
+            return new Monster(def);
         };
         return Monster;
     }());

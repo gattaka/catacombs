@@ -15,8 +15,7 @@ var Catacombs;
         EventType[EventType["PLAYER_MOVE"] = 0] = "PLAYER_MOVE";
         EventType[EventType["MONSTER_MOVE"] = 1] = "MONSTER_MOVE";
         EventType[EventType["ROOM_DISCOVERED"] = 2] = "ROOM_DISCOVERED";
-        EventType[EventType["ITEM_OBTAINED"] = 3] = "ITEM_OBTAINED";
-        EventType[EventType["ITEM_USED"] = 4] = "ITEM_USED";
+        EventType[EventType["INV_UPDATE"] = 3] = "INV_UPDATE";
     })(EventType = Catacombs.EventType || (Catacombs.EventType = {}));
     var EventPayload = (function () {
         function EventPayload(type) {
@@ -65,9 +64,9 @@ var Catacombs;
     Catacombs.TupleEventPayload = TupleEventPayload;
     var PlayerMovePayload = (function (_super) {
         __extends(PlayerMovePayload, _super);
-        function PlayerMovePayload(player, x, y) {
+        function PlayerMovePayload(playerId, x, y) {
             var _this = _super.call(this, EventType.PLAYER_MOVE) || this;
-            _this.player = player;
+            _this.playerId = playerId;
             _this.x = x;
             _this.y = y;
             return _this;
@@ -78,7 +77,7 @@ var Catacombs;
     var MonsterMovePayload = (function (_super) {
         __extends(MonsterMovePayload, _super);
         function MonsterMovePayload(monster, x, y) {
-            var _this = _super.call(this, EventType.PLAYER_MOVE) || this;
+            var _this = _super.call(this, EventType.MONSTER_MOVE) || this;
             _this.monster = monster;
             _this.x = x;
             _this.y = y;
