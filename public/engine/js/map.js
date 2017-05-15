@@ -32,9 +32,9 @@ var Catacombs;
                 // snižuje tier dle blízkosti ke středu
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
-                var monster = Catacombs.Monster.createRandom(Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist));
-                room.monsters.push(monster);
-                this.proc.monsters.push(monster);
+                var monster = Catacombs.Monster.createRandom(this, Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist), mapx, mapy);
+                room.monsters[monster.creatureId] = monster;
+                this.proc.monsters[monster.creatureId] = monster;
             }
             else {
                 limit += Catacombs.ItemDef.totalAvailableInstances;

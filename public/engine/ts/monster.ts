@@ -12,32 +12,45 @@ namespace Catacombs {
         }
     }
 
-    export class Monster {
-        public static createRandom(maxTier: number): Monster {
+    export class Monster extends Creature {
+        public static monstersCount = 0;
+        public static createRandom(map: Map, maxTier: number, mapx: number, mapy: number): Monster {
             let m = Math.floor(Math.random() * maxTier);
             for (let i = 0; i < maxTier; i++) {
                 let def = MonsterDef.monsterDefs[m];
                 if (def.availableInstances > 0)
-                    return Monster.create(MonsterDef.monsterDefs[m]);
+                    return Monster.create(map, MonsterDef.monsterDefs[m], mapx, mapy);
                 m = (m + 1) % maxTier;
             }
             return null;
         }
 
-        public static create(def: MonsterDef): Monster {
+        public static create(map: Map, def: MonsterDef, mapx: number, mapy: number): Monster {
             if (def.availableInstances == 0) {
                 return null;
             } else {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
+                Monster.monstersCount++;
             }
-            return new Monster(def);
+            return new Monster(map, Monster.monstersCount, def, mapx, mapy);
         }
 
-        public mapx: number;
-        public mapy: number;
+        private constructor(
+            map: Map,
+            creatureId: number,
+            public def: MonsterDef,
+            public mapx: number,
+            public mapy: number
+        ) {
+            super(map, creatureId, mapx, mapy, false);
+        }
 
-        private constructor(public def: MonsterDef) {
+        innerMove(fromRoom: Room, toRoom: Room) {
+            if (fromRoom)
+                fromRoom.monsters[this.creatureId] = null;
+            toRoom.monsters[this.creatureId] = this;
+            EventBus.getInstance().fireEvent(new MonsterMovePayload(this.creatureId, toRoom.mapx, toRoom.mapy));
         }
     }
 

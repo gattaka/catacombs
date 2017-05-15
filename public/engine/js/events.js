@@ -16,6 +16,9 @@ var Catacombs;
         EventType[EventType["MONSTER_MOVE"] = 1] = "MONSTER_MOVE";
         EventType[EventType["ROOM_DISCOVERED"] = 2] = "ROOM_DISCOVERED";
         EventType[EventType["INV_UPDATE"] = 3] = "INV_UPDATE";
+        EventType[EventType["ROOM_ITEM_OBTAINED"] = 4] = "ROOM_ITEM_OBTAINED";
+        EventType[EventType["PLAYER_ACTIVATE"] = 5] = "PLAYER_ACTIVATE";
+        EventType[EventType["KEEPER_ACTIVATE"] = 6] = "KEEPER_ACTIVATE";
     })(EventType = Catacombs.EventType || (Catacombs.EventType = {}));
     var EventPayload = (function () {
         function EventPayload(type) {
@@ -76,9 +79,9 @@ var Catacombs;
     Catacombs.PlayerMovePayload = PlayerMovePayload;
     var MonsterMovePayload = (function (_super) {
         __extends(MonsterMovePayload, _super);
-        function MonsterMovePayload(monster, x, y) {
+        function MonsterMovePayload(monsterId, x, y) {
             var _this = _super.call(this, EventType.MONSTER_MOVE) || this;
-            _this.monster = monster;
+            _this.monsterId = monsterId;
             _this.x = x;
             _this.y = y;
             return _this;
@@ -86,6 +89,18 @@ var Catacombs;
         return MonsterMovePayload;
     }(EventPayload));
     Catacombs.MonsterMovePayload = MonsterMovePayload;
+    var RoomItemObtainedPayload = (function (_super) {
+        __extends(RoomItemObtainedPayload, _super);
+        function RoomItemObtainedPayload(room, item, playerId) {
+            var _this = _super.call(this, EventType.ROOM_ITEM_OBTAINED) || this;
+            _this.room = room;
+            _this.item = item;
+            _this.playerId = playerId;
+            return _this;
+        }
+        return RoomItemObtainedPayload;
+    }(EventPayload));
+    Catacombs.RoomItemObtainedPayload = RoomItemObtainedPayload;
     var EventBus = (function () {
         function EventBus() {
             this.consumers = {};

@@ -64,3 +64,10 @@ Obecné
     - mrtví hráči by se ovládali monstra?
 	- místo pohybu může hráč zvolit kopání, jedno kolo nehraje a pak si může vylosovat odměnu
 	- mříž blokuje jenom netvory?
+	- každý hráč má na počátku jenom palici, kterou může omráčit netvora (nezabije ho, ale ubrání se mu)
+	- u každého tahu do nové místnosti si hráč vylosuje, zda narazil na netvora nebo ne
+		- DM má pak možnost tam (vlastně mimo svůj tah) dát netvora
+			- dle možností (vzdálenost od středu, dostupné počty netvorů daného typu)
+			- dle chutí (může se z dostupných vybrat) 
+	- monstra by měla mít nějaké speciální schopnosti
+		- minotaur například může proběhnout celou chodbu

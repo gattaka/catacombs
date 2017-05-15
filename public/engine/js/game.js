@@ -1,4 +1,5 @@
 ///<reference path='lib/pixi/pixi.js.d.ts'/>
+///<reference path='lib/tweenjs.d.ts'/>
 var Catacombs;
 (function (Catacombs) {
     ;
@@ -28,8 +29,11 @@ var Catacombs;
             self.stage.fixedHeight = window.innerHeight;
             // Processing layer
             self.proc = new Catacombs.Proc();
+            // Controls
+            self.controls = new Catacombs.Controls(self.proc);
             // GFX layer 
-            self.gfx = new Catacombs.Gfx(self.stage, self.proc);
+            self.gfx = new Catacombs.Gfx(self.stage, self.controls, self.proc);
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, 0));
             var ticker = PIXI.ticker.shared;
             ticker.add(function () {
                 statsFPS.begin();
@@ -46,7 +50,6 @@ var Catacombs;
             }
             return Game.INSTANCE;
         };
-        ;
         return Game;
     }());
     Catacombs.Game = Game;

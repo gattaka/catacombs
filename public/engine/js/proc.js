@@ -12,8 +12,6 @@ var Catacombs;
             for (var i = 0; i < Proc.PLAYERS_COUNT; i++) {
                 var player = Catacombs.Player.create(this.map);
                 this.players.push(player);
-                if (i == 0)
-                    player.active = true;
             }
         }
         return Proc;

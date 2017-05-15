@@ -18,8 +18,6 @@ namespace Catacombs {
             for (let i = 0; i < Proc.PLAYERS_COUNT; i++) {
                 let player = Player.create(this.map);
                 this.players.push(player);
-                if (i == 0)
-                    player.active = true;
             }
 
         }

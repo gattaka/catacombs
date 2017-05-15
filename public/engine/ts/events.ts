@@ -5,6 +5,9 @@ namespace Catacombs {
         MONSTER_MOVE,
         ROOM_DISCOVERED,
         INV_UPDATE,
+        ROOM_ITEM_OBTAINED,
+        PLAYER_ACTIVATE,
+        KEEPER_ACTIVATE
     }
 
     abstract class EventPayload {
@@ -32,9 +35,12 @@ namespace Catacombs {
     }
 
     export class MonsterMovePayload extends EventPayload {
-        constructor(public monster: number, public x: number, public y: number) { super(EventType.MONSTER_MOVE); }
+        constructor(public monsterId: number, public x: number, public y: number) { super(EventType.MONSTER_MOVE); }
     }
-    
+
+    export class RoomItemObtainedPayload extends EventPayload {
+        constructor(public room: Room, public item: ItemDef, public playerId: number) { super(EventType.ROOM_ITEM_OBTAINED); }
+    }
 
     export class EventBus {
 
