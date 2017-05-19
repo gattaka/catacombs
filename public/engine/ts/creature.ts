@@ -2,7 +2,6 @@ namespace Catacombs {
 
     export abstract class Creature {
         public health: number;
-
         protected abstract innerMove(fromRoom: Room, toRoom: Room);
 
         constructor(

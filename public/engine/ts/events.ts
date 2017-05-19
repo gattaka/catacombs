@@ -31,11 +31,11 @@ namespace Catacombs {
     }
 
     export class PlayerMovePayload extends EventPayload {
-        constructor(public playerId: number, public x: number, public y: number) { super(EventType.PLAYER_MOVE); }
+        constructor(public playerId: number, public fromX: number, public fromY: number, public toX: number, public toY: number) { super(EventType.PLAYER_MOVE); }
     }
 
     export class MonsterMovePayload extends EventPayload {
-        constructor(public monsterId: number, public x: number, public y: number) { super(EventType.MONSTER_MOVE); }
+        constructor(public monsterId: number, public fromX: number, public fromY: number, public toX: number, public toY: number) { super(EventType.MONSTER_MOVE); }
     }
 
     export class RoomItemObtainedPayload extends EventPayload {

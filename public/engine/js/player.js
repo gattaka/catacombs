@@ -39,7 +39,7 @@ var Catacombs;
             if (fromRoom)
                 fromRoom.players[this.creatureId] = null;
             toRoom.players[this.creatureId] = this;
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerMovePayload(this.creatureId, toRoom.mapx, toRoom.mapy));
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
             var player = this;
             toRoom.items.splice(0, toRoom.items.length).forEach(function (i) {
                 player.takeItem(i);

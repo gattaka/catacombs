@@ -23,8 +23,9 @@ var Catacombs;
                 }
             }
             else {
-                this.proc.players[this.activePlayer].move(sideFrom, sideTo);
-                this.next();
+                if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
+                    this.next();
+                }
             }
         };
         Controls.prototype.next = function () {

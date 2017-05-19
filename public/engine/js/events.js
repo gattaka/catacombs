@@ -67,11 +67,13 @@ var Catacombs;
     Catacombs.TupleEventPayload = TupleEventPayload;
     var PlayerMovePayload = (function (_super) {
         __extends(PlayerMovePayload, _super);
-        function PlayerMovePayload(playerId, x, y) {
+        function PlayerMovePayload(playerId, fromX, fromY, toX, toY) {
             var _this = _super.call(this, EventType.PLAYER_MOVE) || this;
             _this.playerId = playerId;
-            _this.x = x;
-            _this.y = y;
+            _this.fromX = fromX;
+            _this.fromY = fromY;
+            _this.toX = toX;
+            _this.toY = toY;
             return _this;
         }
         return PlayerMovePayload;
@@ -79,11 +81,13 @@ var Catacombs;
     Catacombs.PlayerMovePayload = PlayerMovePayload;
     var MonsterMovePayload = (function (_super) {
         __extends(MonsterMovePayload, _super);
-        function MonsterMovePayload(monsterId, x, y) {
+        function MonsterMovePayload(monsterId, fromX, fromY, toX, toY) {
             var _this = _super.call(this, EventType.MONSTER_MOVE) || this;
             _this.monsterId = monsterId;
-            _this.x = x;
-            _this.y = y;
+            _this.fromX = fromX;
+            _this.fromY = fromY;
+            _this.toX = toX;
+            _this.toY = toY;
             return _this;
         }
         return MonsterMovePayload;

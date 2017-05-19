@@ -50,7 +50,7 @@ namespace Catacombs {
             if (fromRoom)
                 fromRoom.monsters[this.creatureId] = null;
             toRoom.monsters[this.creatureId] = this;
-            EventBus.getInstance().fireEvent(new MonsterMovePayload(this.creatureId, toRoom.mapx, toRoom.mapy));
+            EventBus.getInstance().fireEvent(new MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         }
     }
 

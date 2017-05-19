@@ -26,8 +26,9 @@ namespace Catacombs {
                     this.next();
                 }
             } else {
-                this.proc.players[this.activePlayer].move(sideFrom, sideTo);
-                this.next();
+                if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
+                    this.next();
+                }
             }
         }
 

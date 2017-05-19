@@ -61,7 +61,7 @@ var Catacombs;
             if (fromRoom)
                 fromRoom.monsters[this.creatureId] = null;
             toRoom.monsters[this.creatureId] = this;
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.creatureId, toRoom.mapx, toRoom.mapy));
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         };
         return Monster;
     }(Catacombs.Creature));
