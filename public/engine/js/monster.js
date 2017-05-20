@@ -59,7 +59,7 @@ var Catacombs;
         };
         Monster.prototype.innerMove = function (fromRoom, toRoom) {
             if (fromRoom)
-                fromRoom.monsters[this.creatureId] = null;
+                delete fromRoom.monsters[this.creatureId];
             toRoom.monsters[this.creatureId] = this;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         };

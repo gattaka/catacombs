@@ -48,7 +48,7 @@ namespace Catacombs {
 
         innerMove(fromRoom: Room, toRoom: Room) {
             if (fromRoom)
-                fromRoom.monsters[this.creatureId] = null;
+                delete fromRoom.monsters[this.creatureId];
             toRoom.monsters[this.creatureId] = this;
             EventBus.getInstance().fireEvent(new MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         }

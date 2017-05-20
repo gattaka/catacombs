@@ -15,7 +15,7 @@ namespace Catacombs {
         public revealMapPiece(mapx: number, mapy: number, direction: number): Room {
             // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný
             let roomDef = RoomDef.rndAvailableRoom();
-            if (roomDef == null)
+            if (!roomDef)
                 return;
             let exits = roomDef.exits;
             let rotation = 0;

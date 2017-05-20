@@ -11,7 +11,7 @@ namespace Catacombs {
         private static playersCount = 0;
         public static create(map: Map): Player {
             if (Player.playersCount > 4)
-                return null;
+                return undefined;
             let player = new Player(map, Player.playersCount);
             Player.playersCount++;
             return player;
@@ -28,7 +28,7 @@ namespace Catacombs {
 
         innerMove(fromRoom: Room, toRoom: Room) {
             if (fromRoom)
-                fromRoom.players[this.creatureId] = null;
+                delete fromRoom.players[this.creatureId];
             toRoom.players[this.creatureId] = this;
             EventBus.getInstance().fireEvent(new PlayerMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
             let player = this;

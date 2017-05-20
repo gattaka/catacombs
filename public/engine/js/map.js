@@ -13,7 +13,7 @@ var Catacombs;
         Map.prototype.revealMapPiece = function (mapx, mapy, direction) {
             // pokud je direction =0 pak jde o startovací dílek, ten by měl být vždy stejný
             var roomDef = RoomDef.rndAvailableRoom();
-            if (roomDef == null)
+            if (!roomDef)
                 return;
             var exits = roomDef.exits;
             var rotation = 0;

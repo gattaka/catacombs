@@ -29,7 +29,7 @@ var Catacombs;
         }
         Player.create = function (map) {
             if (Player.playersCount > 4)
-                return null;
+                return undefined;
             var player = new Player(map, Player.playersCount);
             Player.playersCount++;
             return player;
@@ -37,7 +37,7 @@ var Catacombs;
         Player.prototype.innerMove = function (fromRoom, toRoom) {
             var _this = this;
             if (fromRoom)
-                fromRoom.players[this.creatureId] = null;
+                delete fromRoom.players[this.creatureId];
             toRoom.players[this.creatureId] = this;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
             var player = this;
