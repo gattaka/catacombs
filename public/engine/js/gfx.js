@@ -6,7 +6,7 @@ var Catacombs;
             this.controls = controls;
             this.proc = proc;
             this.rooms = new Catacombs.Array2D();
-            this.players = new Catacombs.Array2D();
+            this.players = new Array();
             this.monsters = new Array();
             this.questionMarks = new Array();
             var self = this;
@@ -43,8 +43,8 @@ var Catacombs;
                     _this.monsters[monster.creatureId] = sprite_1;
                     var room_1 = self.proc.map.rooms.getValue(p.x, p.y);
                     var pos = Object.keys(room_1.monsters).length + Object.keys(room_1.players).length - 1 - mCounter;
-                    sprite_1.x = 2.5 + (pos % 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
-                    sprite_1.y = 2.5 + Math.floor(pos / 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
+                    sprite_1.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                    sprite_1.y = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     mCounter++;
                 }
                 // let item = room.items[room.items.length - 1];
@@ -126,18 +126,19 @@ var Catacombs;
             };
             // players (adventurers) icons
             proc.players.forEach(function (player, i) {
-                var texture = PIXI.Texture.fromImage('images/player' + i + '.png');
-                var token = new PIXI.Sprite(texture);
+                var token = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '_token.png'));
                 creaturesCont.addChild(token);
                 token.anchor.set(0.5, 0.5);
+                token.interactive = false;
+                token.buttonMode = true;
                 self.players[i] = token;
-                token.x = 2.5 + (i % 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + player.mapx * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
-                token.y = 2.5 + Math.floor(i / 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + player.mapy * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
-                var playerMenuIcon = new PIXI.Sprite(texture);
+                token.x = 2.5 + (i % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + player.mapx * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                token.y = 2.5 + Math.floor(i / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + player.mapy * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                var playerMenuIcon = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '.png'));
                 playerMenuIcon.anchor.set(0.5, 0.5);
                 rmenu.addChild(playerMenuIcon);
-                playerMenuIcon.x = 10 + Gfx.TOKEN_IMG_SIZE / 2;
-                playerMenuIcon.y = 10 + 2 * i * (Gfx.TOKEN_IMG_SIZE + 20) + Gfx.TOKEN_IMG_SIZE / 2;
+                playerMenuIcon.x = 10 + Gfx.UI_TOKEN_IMG_SIZE / 2;
+                playerMenuIcon.y = 10 + 2 * i * (Gfx.UI_TOKEN_IMG_SIZE + 20) + Gfx.UI_TOKEN_IMG_SIZE / 2;
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.PLAYER_ACTIVATE, function (p) {
                     if (i != p.payload)
                         return;
@@ -147,24 +148,51 @@ var Catacombs;
                 });
                 var healthUI = new PIXI.Container();
                 rmenu.addChild(healthUI);
-                healthUI.x = playerMenuIcon.x + Gfx.TOKEN_IMG_SIZE / 2 + 10;
-                healthUI.y = playerMenuIcon.y - Gfx.TOKEN_IMG_SIZE / 2;
+                healthUI.x = playerMenuIcon.x + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
+                healthUI.y = playerMenuIcon.y - Gfx.UI_TOKEN_IMG_SIZE / 2;
                 for (var h = 0; h < player.health; h++) {
                     var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
                     healthUI.addChild(sprite);
-                    sprite.x = h * Gfx.TOKEN_IMG_SIZE / 2;
+                    sprite.x = h * Gfx.UI_TOKEN_IMG_SIZE / 2;
                 }
                 var invetoryUI = new PIXI.Container();
                 rmenu.addChild(invetoryUI);
-                invetoryUI.x = playerMenuIcon.x + Gfx.TOKEN_IMG_SIZE / 2 + 10;
-                invetoryUI.y = playerMenuIcon.y + Gfx.TOKEN_IMG_SIZE / 2 + 10;
+                invetoryUI.x = playerMenuIcon.x + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
+                invetoryUI.y = playerMenuIcon.y + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
+                token.on("mouseover", function () {
+                    token.scale.set(1.5, 1.5);
+                });
+                token.on("mouseout", function () {
+                    token.scale.set(1, 1);
+                });
+                token.on("click", function () {
+                    // Nestvůra útočí na daného hráče
+                    var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life_token.png'));
+                    mapCont.addChild(sprite);
+                    sprite.x = token.x;
+                    sprite.y = token.y;
+                    sprite.anchor.set(0.5, 0.5);
+                    self.deactivatePlayerTokens();
+                    createjs.Tween.get(sprite)
+                        .to({
+                        y: token.y - 100
+                    }, 300).call(function () {
+                        mapCont.removeChild(sprite);
+                    });
+                    createjs.Tween.get(sprite)
+                        .to({
+                        alpha: 0
+                    }, 300);
+                    player.health--;
+                    healthUI.removeChildAt(healthUI.children.length - 1);
+                });
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.PLAYER_MOVE, function (p) {
                     if (i != p.playerId)
                         return;
                     var room = self.proc.map.rooms.getValue(p.toX, p.toY);
                     var pos = Object.keys(room.monsters).length + Object.keys(room.players).length - 1;
-                    var newX = 2.5 + (pos % 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
-                    var newY = 2.5 + Math.floor(pos / 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
+                    var newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                    var newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     createjs.Tween.get(token)
                         .to({
                         x: newX,
@@ -174,7 +202,7 @@ var Catacombs;
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_ITEM_OBTAINED, function (p) {
                     if (i != p.playerId)
                         return;
-                    var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + p.item.name + '_token.png'));
+                    var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + p.item.name + '.png'));
                     stage.addChild(sprite);
                     sprite.x = mapCont.x + Gfx.ROOM_IMG_SIZE * (p.room.mapx + 0.5);
                     sprite.y = mapCont.y + Gfx.ROOM_IMG_SIZE * (p.room.mapy + 0.5);
@@ -204,20 +232,21 @@ var Catacombs;
                             text.y = 1;
                             lastX += text.width;
                         }
-                        var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.name + '_token.png'));
+                        var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.name + '.png'));
                         invetoryUI.addChild(sprite);
                         sprite.x = lastX;
-                        lastX += Gfx.TOKEN_IMG_SIZE + 15;
+                        lastX += Gfx.UI_TOKEN_IMG_SIZE + 15;
                     }
                 });
             });
             Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.MONSTER_MOVE, function (p) {
+                self.deactivatePlayerTokens();
                 var token = self.monsters[p.monsterId];
                 var monster = self.proc.monsters[p.monsterId];
                 var room = self.proc.map.rooms.getValue(p.toX, p.toY);
                 var pos = Object.keys(room.monsters).length + Object.keys(room.players).length - 1;
-                var newX = 2.5 + (pos % 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
-                var newY = 2.5 + Math.floor(pos / 3) * (Gfx.TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.TOKEN_IMG_SIZE / 2;
+                var newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                var newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                 createjs.Tween.get(token)
                     .to({
                     x: newX,
@@ -226,12 +255,12 @@ var Catacombs;
                 return false;
             });
             // dungeon keeper icon
-            var texture = PIXI.Texture.fromImage('images/keeper_token.png');
+            var texture = PIXI.Texture.fromImage('images/keeper.png');
             var keeperIcon = new PIXI.Sprite(texture);
             keeperIcon.anchor.set(0.5, 0.5);
             rmenu.addChild(keeperIcon);
-            keeperIcon.x = 10 + Gfx.TOKEN_IMG_SIZE / 2;
-            keeperIcon.y = 10 + 2 * proc.players.length * (Gfx.TOKEN_IMG_SIZE + 20) + Gfx.TOKEN_IMG_SIZE / 2;
+            keeperIcon.x = 10 + Gfx.UI_TOKEN_IMG_SIZE / 2;
+            keeperIcon.y = 10 + 2 * proc.players.length * (Gfx.UI_TOKEN_IMG_SIZE + 20) + Gfx.UI_TOKEN_IMG_SIZE / 2;
             var skip = new PIXI.Text("Přeskočit tah (mezerník)", { fontFamily: 'Arial', fontSize: 24, fill: 0xffff10 });
             rmenu.addChild(skip);
             skip.anchor.set(0.5, 0.5);
@@ -258,6 +287,11 @@ var Catacombs;
                         self.questionMarks.forEach(function (q) { creaturesCont.removeChild(q); });
                         self.questionMarks = [];
                         bounce([sprite]);
+                        var room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
+                        room.players.forEach(function (player) {
+                            var playerUI = self.players[player.creatureId];
+                            playerUI.interactive = true;
+                        });
                     };
                     sprite.interactive = true;
                     sprite.on('click', onClick);
@@ -272,9 +306,16 @@ var Catacombs;
                 return false;
             });
         }
+        Gfx.prototype.deactivatePlayerTokens = function () {
+            this.players.forEach(function (player) {
+                player.interactive = false;
+                player.scale.set(1, 1);
+            });
+        };
         return Gfx;
     }());
     Gfx.ROOM_IMG_SIZE = 100;
-    Gfx.TOKEN_IMG_SIZE = 30;
+    Gfx.MAP_TOKEN_IMG_SIZE = 30;
+    Gfx.UI_TOKEN_IMG_SIZE = 60;
     Catacombs.Gfx = Gfx;
 })(Catacombs || (Catacombs = {}));
