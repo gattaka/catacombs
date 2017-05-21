@@ -25,7 +25,7 @@ var Catacombs;
             }
             var room = new Room(roomDef, mapx, mapy, exits, rotation);
             // obsah místnosti
-            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.ItemDef.totalAvailableInstances));
+            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.TreasureDef.totalAvailableInstances));
             var limit = Catacombs.MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
                 var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
@@ -33,13 +33,13 @@ var Catacombs;
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 var monster = Catacombs.Monster.createRandom(this, Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist), mapx, mapy);
-                room.monsters[monster.creatureId] = monster;
-                this.proc.monsters[monster.creatureId] = monster;
+                room.monsters[monster.id] = monster;
+                this.proc.monsters[monster.id] = monster;
             }
             else {
-                limit += Catacombs.ItemDef.totalAvailableInstances;
+                limit += Catacombs.TreasureDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    var item = Catacombs.Item.createRandom();
+                    var item = Catacombs.Treasure.createRandom(this, mapx, mapy);
                     room.items.push(item);
                     this.proc.items.push(item);
                 }
@@ -91,6 +91,8 @@ var Catacombs;
                     roomType = (roomType + 1) % RoomDef.roomDefs.length;
                 }
             }
+            alert("Nepodařilo se získat náhodnou místnost - nejsou volné karty!");
+            return null;
         };
         RoomDef.register = function (type, exits, availableInstances) {
             RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, availableInstances);
@@ -102,19 +104,19 @@ var Catacombs;
     RoomDef.roomDefs = new Array();
     Catacombs.RoomDef = RoomDef;
     // Místnosti
-    // pro začátek zkusíme od každého dílku 5 kusů
-    // je 10 druhů, takže 50 dílků mapy sqrt(50) je 7 (^49)
-    // to se hodí, protože by se udělala mřížka 7x7, ve které
-    // by byl jeden středový dílek 48+1, při délce dílku 4 cm 
-    // by hrací plocha byla přijatelných 28x28 cm
-    RoomDef.register(0, 5, 5);
-    RoomDef.register(1, 10, 5);
-    RoomDef.register(2, 10, 5);
-    RoomDef.register(3, 15, 5);
-    RoomDef.register(4, 11, 5);
-    RoomDef.register(5, 14, 5);
-    RoomDef.register(6, 10, 5);
-    RoomDef.register(7, 14, 5);
-    RoomDef.register(8, 7, 5);
-    RoomDef.register(9, 13, 5);
+    // od každého dílku 8 kusů + 9 kusů od křižovatkového dílku
+    // je 10 druhů, takže 70 + 11 = 81 dílků
+    // takže je hrací pole 9x9 se středovým polem
+    // při délce dílku 4 cm to je hrací plocha 36x36cm
+    // je možné změnšit na 7x7 apod.
+    RoomDef.register(0, 5, 8);
+    RoomDef.register(1, 10, 8);
+    RoomDef.register(2, 10, 8);
+    RoomDef.register(3, 15, 9);
+    RoomDef.register(4, 11, 8);
+    RoomDef.register(5, 14, 8);
+    RoomDef.register(6, 10, 8);
+    RoomDef.register(7, 14, 8);
+    RoomDef.register(8, 7, 8);
+    RoomDef.register(9, 13, 8);
 })(Catacombs || (Catacombs = {}));

@@ -39,7 +39,7 @@ namespace Catacombs {
     }
 
     export class RoomItemObtainedPayload extends EventPayload {
-        constructor(public room: Room, public item: ItemDef, public playerId: number) { super(EventType.ROOM_ITEM_OBTAINED); }
+        constructor(public room: Room, public item: TreasureDef, public playerId: number) { super(EventType.ROOM_ITEM_OBTAINED); }
     }
 
     export class EventBus {

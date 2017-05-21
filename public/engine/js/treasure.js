@@ -11,31 +11,33 @@ var __extends = (this && this.__extends) || (function () {
 var Catacombs;
 (function (Catacombs) {
     var TreasureDef = (function () {
-        function TreasureDef(name, price, availableInstances) {
+        function TreasureDef(name, price, availableInstances, pickable) {
             this.name = name;
             this.price = price;
             this.availableInstances = availableInstances;
+            this.pickable = pickable;
             TreasureDef.totalAvailableInstances += availableInstances;
         }
-        TreasureDef.register = function (name, price, availableInstances) {
-            TreasureDef.itemDefsByName[name] = new TreasureDef(name, price, availableInstances);
-            TreasureDef.itemDefsByOrder.push(TreasureDef.itemDefsByName[name]);
+        TreasureDef.register = function (name, price, availableInstances, pickable) {
+            if (pickable === void 0) { pickable = true; }
+            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, pickable);
+            TreasureDef.defsByOrder.push(TreasureDef.defsByName[name]);
         };
         TreasureDef.getRandom = function () {
-            var m = Math.floor(Math.random() * TreasureDef.itemDefsByOrder.length);
-            for (var i = 0; i < TreasureDef.itemDefsByOrder.length; i++) {
-                var def = TreasureDef.itemDefsByOrder[m];
+            var m = Math.floor(Math.random() * TreasureDef.defsByOrder.length);
+            for (var i = 0; i < TreasureDef.defsByOrder.length; i++) {
+                var def = TreasureDef.defsByOrder[m];
                 if (def.availableInstances > 0)
-                    return TreasureDef.itemDefsByOrder[m];
-                m = (m + 1) % TreasureDef.itemDefsByOrder.length;
+                    return TreasureDef.defsByOrder[m];
+                m = (m + 1) % TreasureDef.defsByOrder.length;
             }
             return null;
         };
         return TreasureDef;
     }());
     TreasureDef.totalAvailableInstances = 0;
-    TreasureDef.itemDefsByName = {};
-    TreasureDef.itemDefsByOrder = [];
+    TreasureDef.defsByName = {};
+    TreasureDef.defsByOrder = [];
     Catacombs.TreasureDef = TreasureDef;
     var Treasure = (function (_super) {
         __extends(Treasure, _super);
@@ -68,8 +70,8 @@ var Catacombs;
     TreasureDef.register("gem", 5, 10);
     TreasureDef.register("amulet", 10, 5);
     TreasureDef.register("coins", 15, 1);
-    TreasureDef.register("blue_chest", 20, 1);
-    TreasureDef.register("red_chest", 20, 1);
-    TreasureDef.register("green_chest", 20, 1);
-    TreasureDef.register("yellow_chest", 20, 1);
+    TreasureDef.register("blue_chest", 0, 1, false);
+    TreasureDef.register("red_chest", 0, 1, false);
+    TreasureDef.register("green_chest", 0, 1, false);
+    TreasureDef.register("yellow_chest", 0, 1, false);
 })(Catacombs || (Catacombs = {}));

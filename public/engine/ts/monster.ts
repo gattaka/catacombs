@@ -19,38 +19,40 @@ namespace Catacombs {
             for (let i = 0; i < maxTier; i++) {
                 let def = MonsterDef.monsterDefs[m];
                 if (def.availableInstances > 0)
-                    return Monster.create(map, MonsterDef.monsterDefs[m], mapx, mapy);
+                    return Monster.create(map, mapx, mapy, MonsterDef.monsterDefs[m]);
                 m = (m + 1) % maxTier;
             }
+            alert("Nepodařilo se získat náhodného netvora - nejsou volné karty!");
             return null;
         }
 
-        public static create(map: Map, def: MonsterDef, mapx: number, mapy: number): Monster {
+        public static create(map: Map, mapx: number, mapy: number, def: MonsterDef): Monster {
             if (def.availableInstances == 0) {
+                alert("Nepodařilo se získat netvora - nejsou volné karty!");
                 return null;
             } else {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
                 Monster.monstersCount++;
             }
-            return new Monster(map, Monster.monstersCount, def, mapx, mapy);
+            return new Monster(map, Monster.monstersCount, mapx, mapy, def);
         }
 
         private constructor(
             map: Map,
             creatureId: number,
-            public def: MonsterDef,
-            public mapx: number,
-            public mapy: number
+            mapx: number,
+            mapy: number,
+            public def: MonsterDef
         ) {
             super(map, creatureId, mapx, mapy, false);
         }
 
         innerMove(fromRoom: Room, toRoom: Room) {
             if (fromRoom)
-                delete fromRoom.monsters[this.creatureId];
-            toRoom.monsters[this.creatureId] = this;
-            EventBus.getInstance().fireEvent(new MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
+                delete fromRoom.monsters[this.id];
+            toRoom.monsters[this.id] = this;
+            EventBus.getInstance().fireEvent(new MonsterMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         }
     }
 

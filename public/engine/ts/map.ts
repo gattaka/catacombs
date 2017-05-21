@@ -28,7 +28,7 @@ namespace Catacombs {
             let room = new Room(roomDef, mapx, mapy, exits, rotation);
 
             // obsah místnosti
-            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + ItemDef.totalAvailableInstances));
+            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + TreasureDef.totalAvailableInstances));
             let limit = MonsterDef.totalAvailableInstances;
             if (rnd < limit) {
                 let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
@@ -36,12 +36,12 @@ namespace Catacombs {
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 let monster = Monster.createRandom(this, MonsterDef.monsterDefs.length - (this.center - centerDist), mapx, mapy);
-                room.monsters[monster.creatureId] = monster;
-                this.proc.monsters[monster.creatureId] = monster;
+                room.monsters[monster.id] = monster;
+                this.proc.monsters[monster.id] = monster;
             } else {
-                limit += ItemDef.totalAvailableInstances;
+                limit += TreasureDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    let item = Item.createRandom();
+                    let item = Treasure.createRandom(this, mapx, mapy);
                     room.items.push(item);
                     this.proc.items.push(item);
                 }
@@ -57,7 +57,7 @@ namespace Catacombs {
     export class Room {
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
-        public items = new Array<Item>();
+        public items = new Array<Treasure>();
         constructor(public def: RoomDef, public mapx: number, public mapy: number, public rotatedExits: number, public rotation: number) {
             def.availableInstances--;
             RoomDef.totalAvailableInstances--;
@@ -85,6 +85,8 @@ namespace Catacombs {
                     roomType = (roomType + 1) % RoomDef.roomDefs.length;
                 }
             }
+            alert("Nepodařilo se získat náhodnou místnost - nejsou volné karty!")
+            return null;
         }
 
         public static register(type: number, exits: number, availableInstances: number) {
@@ -96,20 +98,20 @@ namespace Catacombs {
     }
 
     // Místnosti
-    // pro začátek zkusíme od každého dílku 5 kusů
-    // je 10 druhů, takže 50 dílků mapy sqrt(50) je 7 (^49)
-    // to se hodí, protože by se udělala mřížka 7x7, ve které
-    // by byl jeden středový dílek 48+1, při délce dílku 4 cm 
-    // by hrací plocha byla přijatelných 28x28 cm
-    RoomDef.register(0, 0b0101, 5);
-    RoomDef.register(1, 0b1010, 5);
-    RoomDef.register(2, 0b1010, 5);
-    RoomDef.register(3, 0b1111, 5);
-    RoomDef.register(4, 0b1011, 5);
-    RoomDef.register(5, 0b1110, 5);
-    RoomDef.register(6, 0b1010, 5);
-    RoomDef.register(7, 0b1110, 5);
-    RoomDef.register(8, 0b0111, 5);
-    RoomDef.register(9, 0b1101, 5);
+    // od každého dílku 8 kusů + 9 kusů od křižovatkového dílku
+    // je 10 druhů, takže 70 + 11 = 81 dílků
+    // takže je hrací pole 9x9 se středovým polem
+    // při délce dílku 4 cm to je hrací plocha 36x36cm
+    // je možné změnšit na 7x7 apod.
+    RoomDef.register(0, 0b0101, 8);
+    RoomDef.register(1, 0b1010, 8);
+    RoomDef.register(2, 0b1010, 8);
+    RoomDef.register(3, 0b1111, 9);
+    RoomDef.register(4, 0b1011, 8);
+    RoomDef.register(5, 0b1110, 8);
+    RoomDef.register(6, 0b1010, 8);
+    RoomDef.register(7, 0b1110, 8);
+    RoomDef.register(8, 0b0111, 8);
+    RoomDef.register(9, 0b1101, 8);
 
 }

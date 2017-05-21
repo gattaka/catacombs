@@ -5,13 +5,13 @@ namespace Catacombs {
 
         public map: Map;
         public players = new Array<Player>();
-        public items = new Array<Item>();
+        public items = new Array<Treasure>();
         public monsters = new Array<Monster>();
 
         constructor() {
 
             // Mapa
-            this.map = new Map(7, this);
+            this.map = new Map(9, this);
 
             // Players
             this.players = new Array<Player>();

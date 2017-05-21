@@ -29,11 +29,9 @@ var Catacombs;
     Catacombs.MonsterDef = MonsterDef;
     var Monster = (function (_super) {
         __extends(Monster, _super);
-        function Monster(map, creatureId, def, mapx, mapy) {
+        function Monster(map, creatureId, mapx, mapy, def) {
             var _this = _super.call(this, map, creatureId, mapx, mapy, false) || this;
             _this.def = def;
-            _this.mapx = mapx;
-            _this.mapy = mapy;
             return _this;
         }
         Monster.createRandom = function (map, maxTier, mapx, mapy) {
@@ -41,13 +39,15 @@ var Catacombs;
             for (var i = 0; i < maxTier; i++) {
                 var def = MonsterDef.monsterDefs[m];
                 if (def.availableInstances > 0)
-                    return Monster.create(map, MonsterDef.monsterDefs[m], mapx, mapy);
+                    return Monster.create(map, mapx, mapy, MonsterDef.monsterDefs[m]);
                 m = (m + 1) % maxTier;
             }
+            alert("Nepodařilo se získat náhodného netvora - nejsou volné karty!");
             return null;
         };
-        Monster.create = function (map, def, mapx, mapy) {
+        Monster.create = function (map, mapx, mapy, def) {
             if (def.availableInstances == 0) {
+                alert("Nepodařilo se získat netvora - nejsou volné karty!");
                 return null;
             }
             else {
@@ -55,13 +55,13 @@ var Catacombs;
                 MonsterDef.totalAvailableInstances--;
                 Monster.monstersCount++;
             }
-            return new Monster(map, Monster.monstersCount, def, mapx, mapy);
+            return new Monster(map, Monster.monstersCount, mapx, mapy, def);
         };
         Monster.prototype.innerMove = function (fromRoom, toRoom) {
             if (fromRoom)
-                delete fromRoom.monsters[this.creatureId];
-            toRoom.monsters[this.creatureId] = this;
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.creatureId, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
+                delete fromRoom.monsters[this.id];
+            toRoom.monsters[this.id] = this;
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         };
         return Monster;
     }(Catacombs.Creature));

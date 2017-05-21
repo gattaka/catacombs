@@ -6,7 +6,7 @@ var Catacombs;
             this.items = new Array();
             this.monsters = new Array();
             // Mapa
-            this.map = new Catacombs.Map(7, this);
+            this.map = new Catacombs.Map(9, this);
             // Players
             this.players = new Array();
             for (var i = 0; i < Proc.PLAYERS_COUNT; i++) {

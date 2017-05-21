@@ -1,16 +1,18 @@
 namespace Catacombs {
 
-    export abstract class Creature {
+    export abstract class Creature extends MapItem {
         public health: number;
         protected abstract innerMove(fromRoom: Room, toRoom: Room);
 
         constructor(
-            protected map: Map,
-            public creatureId: number,
-            public mapx: number,
-            public mapy: number,
+            map: Map,
+            creatureId: number,
+            mapx: number,
+            mapy: number,
             private canReveal: boolean
-        ) { }
+        ) {
+            super(map, creatureId, mapx, mapy);
+        }
 
         move(sideFrom: number, sideTo: number): boolean {
             // můžu se posunout tímto směrem z aktuální místnosti?

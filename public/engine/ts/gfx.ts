@@ -45,7 +45,7 @@ namespace Catacombs {
                     let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + monster.def.name + '_token.png'));
                     sprite.anchor.set(0.5);
                     creaturesCont.addChild(sprite);
-                    this.monsters[monster.creatureId] = sprite;
+                    this.monsters[monster.id] = sprite;
                     let room = self.proc.map.rooms.getValue(p.x, p.y);
                     let pos = Object.keys(room.monsters).length + Object.keys(room.players).length - 1 - mCounter;
                     sprite.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
@@ -106,6 +106,40 @@ namespace Catacombs {
             stage.addChild(lmenu);
             lmenu.x = 10;
             lmenu.y = 10;
+            let lmenuLastY = 0;
+
+            Object.keys(EquipmentDef.defsByName).forEach((name, i) => {
+                let def = EquipmentDef.defsByName[name];
+                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '_token.png'));
+                token.x = 10;
+                token.y = 10 + i * (Gfx.UI_TOKEN_IMG_SIZE + 10);
+                lmenuLastY = token.y;
+                lmenu.addChild(token);
+                let buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - Gfx.UI_TOKEN_IMG_SIZE, 30, () => {
+                    let activePlayer = self.controls.activePlayer;
+                    // TODO
+                });
+                buyBtn.x = token.x + 10 + Gfx.UI_TOKEN_IMG_SIZE;
+                buyBtn.y = token.y + Gfx.UI_TOKEN_IMG_SIZE / 2 - buyBtn.getBounds().height / 2;
+                lmenu.addChild(buyBtn);
+            });
+
+            Object.keys(TreasureDef.defsByName).forEach((name, i) => {
+                let def = TreasureDef.defsByName[name];
+                if (!def.pickable)
+                    return;
+
+                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '.png'));
+                token.x = 10;
+                token.y = lmenuLastY + Gfx.UI_TOKEN_IMG_SIZE + 20 + i * (Gfx.UI_TOKEN_IMG_SIZE + 10);
+                lmenu.addChild(token);
+
+                let text = new PIXI.Text(" = " + def.price + "c", { fontFamily: 'Arial', fontSize: 34 + "px", fill: 0xd29e36 });
+                text.anchor.set(0, 0.5);
+                text.x = token.x + Gfx.UI_TOKEN_IMG_SIZE + 10;
+                text.y = token.y + Gfx.UI_TOKEN_IMG_SIZE / 2;
+                lmenu.addChild(text);
+            });
 
             // rmenu
             let rmenu = createMenu();
@@ -136,7 +170,7 @@ namespace Catacombs {
                 });
             }
 
-            // players (adventurers) icons
+            // player icons
             proc.players.forEach((player, i) => {
                 let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '_token.png'));
                 creaturesCont.addChild(token);
@@ -189,16 +223,14 @@ namespace Catacombs {
                     sprite.y = token.y;
                     sprite.anchor.set(0.5, 0.5);
                     self.deactivatePlayerTokens();
-                    createjs.Tween.get(sprite)
-                        .to({
-                            y: token.y - 100
-                        }, 300).call(() => {
-                            mapCont.removeChild(sprite);
-                        });
-                    createjs.Tween.get(sprite)
-                        .to({
-                            alpha: 0
-                        }, 300);
+                    createjs.Tween.get(sprite).to({
+                        y: token.y - 100
+                    }, 500).call(() => {
+                        mapCont.removeChild(sprite);
+                    });
+                    createjs.Tween.get(sprite).wait(300).to({
+                        alpha: 0
+                    }, 200);
                     player.health--;
                     healthUI.removeChildAt(healthUI.children.length - 1);
                 });
@@ -283,14 +315,11 @@ namespace Catacombs {
             keeperIcon.x = 10 + Gfx.UI_TOKEN_IMG_SIZE / 2;
             keeperIcon.y = 10 + 2 * proc.players.length * (Gfx.UI_TOKEN_IMG_SIZE + 20) + Gfx.UI_TOKEN_IMG_SIZE / 2;
 
-            let skip = new PIXI.Text("Přeskočit tah (mezerník)", { fontFamily: 'Arial', fontSize: 24, fill: 0xffff10 });
-            rmenu.addChild(skip);
-            skip.anchor.set(0.5, 0.5);
-            skip.x = rmenu.fixedWidth / 2;
-            skip.y = rmenu.fixedHeight / 2;
-            skip.interactive = true;
-            skip.buttonMode = true;
-            skip.on("click", () => { self.controls.next() });
+            // Přeskočit tah btn
+            let skipBtn = self.createBtn("Přeskočit tah (mezerník)", 0xd29e36, rmenu.fixedWidth, 30, () => { self.controls.next() });
+            skipBtn.x = 10;
+            skipBtn.y = keeperIcon.y + Gfx.UI_TOKEN_IMG_SIZE * 2;
+            rmenu.addChild(skipBtn);
 
             EventBus.getInstance().registerConsumer(EventType.KEEPER_ACTIVATE, (p: SimpleEventPayload): boolean => {
                 let toBounce = [keeperIcon];
@@ -313,7 +342,7 @@ namespace Catacombs {
 
                         let room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
                         room.players.forEach((player) => {
-                            let playerUI = self.players[player.creatureId];
+                            let playerUI = self.players[player.id];
                             playerUI.interactive = true;
                         })
                     };
@@ -322,13 +351,32 @@ namespace Catacombs {
                     text.interactive = true;
                     text.on('click', onClick);
                     sprite.buttonMode = true;
-                    sprite.defaultCursor = 'pointer';
                     text.buttonMode = true;
-                    text.defaultCursor = 'pointer';
                 });
                 bounce(toBounce);
                 return false;
             });
+        }
+
+        private createBtn(caption: string, color: number, width: number, height: number, onClick: Function): PIXI.Container {
+            let btn = new PIXI.Container();
+            btn.interactive = true;
+            btn.buttonMode = true;
+            btn.on("click", onClick);
+            btn.on("mouseover", () => { btn.alpha = 0.7; })
+            btn.on("mouseout", () => { btn.alpha = 1; })
+
+            let text = new PIXI.Text(caption, { fontFamily: 'Arial', fontSize: height - 10 + "px", fill: color });
+            text.anchor.set(0.5, 0);
+            text.x = width / 2;
+            text.y = 5;
+            let bgr = new PIXI.Graphics();
+            bgr.beginFill(color, 0.3);
+            bgr.lineStyle(2, color);
+            bgr.drawRoundedRect(0, 0, width - 20, text.height + 10, 5);
+            btn.addChild(bgr);
+            btn.addChild(text);
+            return btn;
         }
 
         public deactivatePlayerTokens() {
