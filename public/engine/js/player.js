@@ -34,6 +34,14 @@ var Catacombs;
             Player.playersCount++;
             return player;
         };
+        Player.prototype.name = function () {
+            switch (this.id) {
+                case 0: return "zelený";
+                case 1: return "červený";
+                case 2: return "žlutý";
+                case 3: return "modrý";
+            }
+        };
         Player.prototype.innerMove = function (fromRoom, toRoom) {
             if (fromRoom)
                 delete fromRoom.players[this.id];
@@ -43,6 +51,8 @@ var Catacombs;
             if (toRoom.treasure && toRoom.treasure.def.canPick) {
                 player.takeItem(toRoom.treasure);
                 Catacombs.EventBus.getInstance().fireEvent(new Catacombs.RoomItemObtainedPayload(toRoom, toRoom.treasure.def, this.id));
+                Catacombs.EventBus.getInstance().fireEvent(new Catacombs.StringEventPayload(Catacombs.EventType.LOG, this.name() + " hráč získal " + toRoom.treasure.def.caption));
+                delete toRoom.treasure;
             }
         };
         Player.prototype.takeItem = function (item) {

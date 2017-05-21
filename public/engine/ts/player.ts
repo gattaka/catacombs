@@ -26,6 +26,15 @@ namespace Catacombs {
             this.map.rooms.getValue(this.mapx, this.mapy).players[this.id] = this;
         }
 
+        public name(): string {
+            switch (this.id) {
+                case 0: return "zelený";
+                case 1: return "červený";
+                case 2: return "žlutý";
+                case 3: return "modrý";
+            }
+        }
+
         innerMove(fromRoom: Room, toRoom: Room) {
             if (fromRoom)
                 delete fromRoom.players[this.id];
@@ -35,6 +44,8 @@ namespace Catacombs {
             if (toRoom.treasure && toRoom.treasure.def.canPick) {
                 player.takeItem(toRoom.treasure);
                 EventBus.getInstance().fireEvent(new RoomItemObtainedPayload(toRoom, toRoom.treasure.def, this.id));
+                EventBus.getInstance().fireEvent(new StringEventPayload(EventType.LOG, this.name() + " hráč získal " + toRoom.treasure.def.caption));
+                delete toRoom.treasure;
             }
         }
 

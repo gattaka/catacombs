@@ -11,18 +11,19 @@ var __extends = (this && this.__extends) || (function () {
 var Catacombs;
 (function (Catacombs) {
     var TreasureDef = (function () {
-        function TreasureDef(name, price, availableInstances, canBuy, canPick) {
+        function TreasureDef(name, caption, price, availableInstances, canBuy, canPick) {
             this.name = name;
+            this.caption = caption;
             this.price = price;
             this.availableInstances = availableInstances;
             this.canBuy = canBuy;
             this.canPick = canPick;
             TreasureDef.totalAvailableInstances += availableInstances;
         }
-        TreasureDef.register = function (name, price, availableInstances, canBuy, canPick) {
+        TreasureDef.register = function (name, caption, price, availableInstances, canBuy, canPick) {
             if (canBuy === void 0) { canBuy = true; }
             if (canPick === void 0) { canPick = true; }
-            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, canBuy, canPick);
+            TreasureDef.defsByName[name] = new TreasureDef(name, caption, price, availableInstances, canBuy, canPick);
             TreasureDef.defsByOrder.push(TreasureDef.defsByName[name]);
         };
         TreasureDef.getRandom = function () {
@@ -68,16 +69,16 @@ var Catacombs;
     Treasure.treasureCount = 0;
     Catacombs.Treasure = Treasure;
     // položky
-    TreasureDef.register("coin", 1, 15);
-    TreasureDef.register("cup", 5, 10);
-    TreasureDef.register("gems", 10, 5);
-    TreasureDef.register("amulet", 15, 2);
-    TreasureDef.register("blue_key", 0, 1, false);
-    TreasureDef.register("red_key", 0, 1, false);
-    TreasureDef.register("green_key", 0, 1, false);
-    TreasureDef.register("yellow_key", 0, 1, false);
-    TreasureDef.register("blue_chest_token", 0, 1, false, false);
-    TreasureDef.register("red_chest_token", 0, 1, false, false);
-    TreasureDef.register("green_chest_token", 0, 1, false, false);
-    TreasureDef.register("yellow_chest_token", 0, 1, false, false);
+    TreasureDef.register("coin", "zlatou minci", 1, 15);
+    TreasureDef.register("cup", "zlatý pohár", 5, 10);
+    TreasureDef.register("gems", "drahokamy", 10, 5);
+    TreasureDef.register("amulet", "amulet", 15, 2);
+    TreasureDef.register("blue_key", "modrý klíč", 0, 1, false);
+    TreasureDef.register("red_key", "červený klíč", 0, 1, false);
+    TreasureDef.register("green_key", "zelený klíč", 0, 1, false);
+    TreasureDef.register("yellow_key", "žlutý klič", 0, 1, false);
+    TreasureDef.register("blue_chest_token", "modrá truhla", 0, 1, false, false);
+    TreasureDef.register("red_chest_token", "červená truhla", 0, 1, false, false);
+    TreasureDef.register("green_chest_token", "zelený truhla", 0, 1, false, false);
+    TreasureDef.register("yellow_chest_token", "žlutá truhla", 0, 1, false, false);
 })(Catacombs || (Catacombs = {}));

@@ -34,6 +34,7 @@ var Catacombs;
             // GFX layer 
             self.gfx = new Catacombs.Gfx(self.stage, self.controls, self.proc);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, 0));
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.StringEventPayload(Catacombs.EventType.LOG, "hra začala"));
             var ticker = PIXI.ticker.shared;
             ticker.add(function () {
                 statsFPS.begin();

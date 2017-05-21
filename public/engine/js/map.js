@@ -35,8 +35,10 @@ var Catacombs;
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 var monster = Catacombs.Monster.createRandom(this, Catacombs.MonsterDef.monsterDefs.length - (this.center - centerDist), mapx, mapy);
-                room.monsters[monster.id] = monster;
-                this.proc.monsters[monster.id] = monster;
+                if (monster) {
+                    room.monsters[monster.id] = monster;
+                    this.proc.monsters[monster.id] = monster;
+                }
             }
             else {
                 this.noMonsterCases--;

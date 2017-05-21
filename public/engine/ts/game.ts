@@ -68,6 +68,7 @@ namespace Catacombs {
             self.gfx = new Gfx(self.stage, self.controls, self.proc);
 
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, 0));
+            EventBus.getInstance().fireEvent(new StringEventPayload(EventType.LOG, "hra začala"));
 
             let ticker = PIXI.ticker.shared;
             ticker.add(() => {

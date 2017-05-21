@@ -1,28 +1,38 @@
 namespace Catacombs {
+
+    class RoomSprite extends PIXI.Sprite {
+        constructor(texture: string, public roomPos: number) {
+            super(PIXI.Texture.fromImage('images/' + texture))
+        }
+    }
+
     export class Gfx {
 
         private static ROOM_IMG_SIZE = 100;
         private static MAP_TOKEN_IMG_SIZE = 30;
         private static UI_TOKEN_IMG_SIZE = 60;
 
-        private roomSprites = new Array2D<Array<PIXI.Sprite>>();
-        private players = new Array<PIXI.Sprite>();
-        private monsters = new Array<PIXI.Sprite>();
-        private treasures = new Array<PIXI.Sprite>();
+        private roomSprites = new Array2D<Array<RoomSprite>>();
+
+        private playerTokenById = new Array<RoomSprite>();
+        private monsterTokenById = new Array<RoomSprite>();
+        private treasureTokenById = new Array<RoomSprite>();
+
         private questionMarks = new Array<PIXI.Text>();
+
+        private mapCont = new PIXI.Container();
+        private mapTokensCont = new PIXI.Container();
 
         constructor(stage: PIXI.Container, private controls: Controls, private proc: Proc) {
             let self = this;
 
             // Mapa
-            let mapCont = new PIXI.Container();
-            let mapTokensCont = new PIXI.Container();
-            stage.addChild(mapCont);
-            stage.addChild(mapTokensCont);
-            mapCont.fixedWidth = mapTokensCont.fixedWidth = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
-            mapCont.fixedHeight = mapTokensCont.fixedHeight = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
-            mapCont.x = mapTokensCont.x = stage.fixedWidth / 2 - mapCont.fixedWidth / 2;
-            mapCont.y = mapTokensCont.y = stage.fixedHeight / 2 - mapCont.fixedHeight / 2;
+            stage.addChild(self.mapCont);
+            stage.addChild(self.mapTokensCont);
+            self.mapCont.fixedWidth = self.mapTokensCont.fixedWidth = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
+            self.mapCont.fixedHeight = self.mapTokensCont.fixedHeight = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
+            self.mapCont.x = self.mapTokensCont.x = stage.fixedWidth / 2 - self.mapCont.fixedWidth / 2;
+            self.mapCont.y = self.mapTokensCont.y = stage.fixedHeight / 2 - self.mapCont.fixedHeight / 2;
 
             EventBus.getInstance().registerConsumer(EventType.ROOM_DISCOVERED, (p: TupleEventPayload): boolean => {
                 let room = proc.map.rooms.getValue(p.x, p.y);
@@ -31,7 +41,7 @@ namespace Catacombs {
                 sprite.rotation = room.rotation;
                 sprite.x = Gfx.ROOM_IMG_SIZE * (p.x + 0.5);
                 sprite.y = Gfx.ROOM_IMG_SIZE * (p.y + 0.5)
-                mapCont.addChild(sprite);
+                self.mapCont.addChild(sprite);
 
                 sprite.alpha = 0;
                 createjs.Tween.get(sprite)
@@ -39,30 +49,21 @@ namespace Catacombs {
                         alpha: 1
                     }, 200);
 
-                let roomSprites = new Array<PIXI.Sprite>();
+                let roomSprites = new Array<RoomSprite>();
                 self.roomSprites.setValue(p.x, p.y, roomSprites);
-                let mCounter = 0;
                 for (let monster of room.monsters) {
                     if (!monster)
                         continue;
-                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + monster.def.name + '_token.png'));
-                    sprite.anchor.set(0.5);
-                    mapTokensCont.addChild(sprite);
-                    this.monsters[monster.id] = sprite;
-                    let pos = Object.keys(room.monsters).length - 1 - mCounter;
-                    sprite.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                    sprite.y = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                    mCounter++;
+                    let sprite = new RoomSprite(monster.def.name + '_token.png', roomSprites.length);
+                    this.monsterTokenById[monster.id] = sprite;
+                    roomSprites.push(sprite);
                 }
                 if (room.treasure && !room.treasure.def.canPick) {
-                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + room.treasure.def.name + '.png'));
-                    sprite.anchor.set(0.5);
-                    mapTokensCont.addChild(sprite);
-                    this.treasures[room.treasure.id] = sprite;
-                    let pos = Object.keys(room.monsters).length;
-                    sprite.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                    sprite.y = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                    let sprite = new RoomSprite(room.treasure.def.name + '.png', roomSprites.length);
+                    this.treasureTokenById[room.treasure.id] = sprite;
+                    roomSprites.push(sprite);
                 }
+                self.drawRoomTokens(p.x, p.y);
                 return false;
             });
 
@@ -75,13 +76,13 @@ namespace Catacombs {
                         let sprite = new PIXI.Sprite(room.def.tex);
                         sprite.x = x;
                         sprite.y = y;
-                        mapCont.addChild(sprite);
+                        self.mapCont.addChild(sprite);
                     } else {
                         let shape = new PIXI.Graphics();
                         shape.beginFill(0x222222);
                         shape.lineStyle(1, 0x000000);
                         shape.drawRect(1, 1, Gfx.ROOM_IMG_SIZE - 2, Gfx.ROOM_IMG_SIZE - 2);
-                        mapCont.addChild(shape);
+                        self.mapCont.addChild(shape);
                         shape.x = x;
                         shape.y = y;
                     }
@@ -91,7 +92,7 @@ namespace Catacombs {
             // Menu
             let createMenu = (): PIXI.Container => {
                 let menu = new PIXI.Container();
-                menu.fixedWidth = stage.fixedWidth / 2 - 20 - mapCont.fixedWidth / 2;
+                menu.fixedWidth = stage.fixedWidth / 2 - 20 - self.mapCont.fixedWidth / 2;
                 menu.fixedHeight = stage.fixedHeight - 20;
                 let shape = new PIXI.Graphics();
                 shape.beginFill(0x222222);
@@ -108,12 +109,13 @@ namespace Catacombs {
             lmenu.y = 10;
             let lmenuLastY = 0;
 
+            // Obchod
             Object.keys(EquipmentDef.defsByName).forEach((name, i) => {
                 let def = EquipmentDef.defsByName[name];
                 let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '_token.png'));
                 token.x = 10;
-                token.y = 10 + i * (Gfx.UI_TOKEN_IMG_SIZE + 10);
-                lmenuLastY = token.y;
+                token.y = lmenuLastY + 10;
+                lmenuLastY = token.y + Gfx.UI_TOKEN_IMG_SIZE;
                 lmenu.addChild(token);
                 let buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - Gfx.UI_TOKEN_IMG_SIZE, 30, () => {
                     let activePlayer = self.controls.activePlayer;
@@ -126,6 +128,7 @@ namespace Catacombs {
                 lmenu.addChild(buyBtn);
             });
 
+            // Ceník
             Object.keys(TreasureDef.defsByName).forEach((name, i) => {
                 let def = TreasureDef.defsByName[name];
                 if (!def.canBuy)
@@ -133,7 +136,8 @@ namespace Catacombs {
 
                 let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '.png'));
                 token.x = 10;
-                token.y = lmenuLastY + Gfx.UI_TOKEN_IMG_SIZE + 20 + i * (Gfx.UI_TOKEN_IMG_SIZE + 10);
+                token.y = lmenuLastY + 10;
+                lmenuLastY = token.y + Gfx.UI_TOKEN_IMG_SIZE;
                 lmenu.addChild(token);
 
                 let text = new PIXI.Text(" = " + def.price + "c", { fontFamily: 'Arial', fontSize: 34 + "px", fill: 0xd29e36 });
@@ -141,6 +145,35 @@ namespace Catacombs {
                 text.x = token.x + Gfx.UI_TOKEN_IMG_SIZE + 10;
                 text.y = token.y + Gfx.UI_TOKEN_IMG_SIZE / 2;
                 lmenu.addChild(text);
+            });
+
+            // Log
+            let logFontSizePX = 20;
+            let logBox = new PIXI.Container();
+            logBox.x = 10;
+            logBox.y = lmenuLastY + 10;
+            logBox.fixedWidth = lmenu.fixedWidth - 20;
+            logBox.fixedHeight = lmenu.fixedHeight - 10 - logBox.y
+            let logBoxBgr = new PIXI.Graphics();
+            logBoxBgr.beginFill(0x0);
+            logBoxBgr.drawRect(0, 0, logBox.fixedWidth, logBox.fixedHeight);
+            logBox.addChild(logBoxBgr);
+            lmenu.addChild(logBox);
+            let logTexts = new Array<PIXI.Text>();
+            EventBus.getInstance().registerConsumer(EventType.LOG, (p: StringEventPayload): boolean => {
+                if (logTexts.length > logBox.fixedHeight / logFontSizePX) {
+                    let oldText = logTexts.shift();
+                    if (oldText)
+                        logBox.removeChild(oldText);
+                }
+                let text = new PIXI.Text("- " + p.payload, { fontFamily: 'Arial', fontSize: logFontSizePX + "px", fill: 0xd29e36 });
+                logTexts.forEach(t => t.y -= text.getBounds().height + 5);
+                logTexts.push(text);
+                text.anchor.set(0, 1);
+                text.x = 5;
+                text.y = logBox.fixedHeight - 5;
+                logBox.addChild(text);
+                return false;
             });
 
             // rmenu
@@ -172,16 +205,19 @@ namespace Catacombs {
                 });
             }
 
+            let mapCenter = self.proc.map.center;
+            let centerRoomSprites = new Array<RoomSprite>()
+            self.roomSprites.setValue(mapCenter, mapCenter, centerRoomSprites);
+
             // player icons
             proc.players.forEach((player, i) => {
-                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '_token.png'));
-                mapTokensCont.addChild(token);
-                token.anchor.set(0.5, 0.5);
+                let token = new RoomSprite('player' + i + '_token.png', centerRoomSprites.length);
                 token.interactive = false;
                 token.buttonMode = true;
-                self.players[i] = token;
-                token.x = 2.5 + (i % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + player.mapx * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                token.y = 2.5 + Math.floor(i / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + player.mapy * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                // na plochu bude přidáno jednotně mimo tento cykl
+                centerRoomSprites.push(token);
+                self.playerTokenById[i] = token;
+
                 let playerMenuIcon = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '.png'));
                 playerMenuIcon.anchor.set(0.5, 0.5);
                 rmenu.addChild(playerMenuIcon);
@@ -191,7 +227,7 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_ACTIVATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
-                    self.questionMarks.forEach((q) => { mapTokensCont.removeChild(q) });
+                    self.questionMarks.forEach((q) => { self.mapTokensCont.removeChild(q) });
                     self.questionMarks = [];
                     bounce([token, playerMenuIcon]);
                     self.deactivateMonsterTokens()
@@ -221,7 +257,7 @@ namespace Catacombs {
                 token.on("click", () => {
                     // Nestvůra útočí na daného hráče
                     let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life_token.png'));
-                    mapCont.addChild(sprite);
+                    self.mapCont.addChild(sprite);
                     sprite.x = token.x;
                     sprite.y = token.y;
                     sprite.anchor.set(0.5, 0.5);
@@ -229,7 +265,7 @@ namespace Catacombs {
                     createjs.Tween.get(sprite).to({
                         y: token.y - 100
                     }, 500).call(() => {
-                        mapCont.removeChild(sprite);
+                        self.mapCont.removeChild(sprite);
                     });
                     createjs.Tween.get(sprite).wait(300).to({
                         alpha: 0
@@ -241,15 +277,9 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_MOVE, (p: PlayerMovePayload): boolean => {
                     if (i != p.playerId)
                         return;
-                    let room = self.proc.map.rooms.getValue(p.toX, p.toY);
-                    let pos = Object.keys(room.monsters).length + Object.keys(room.players).length + (room.treasure && !room.treasure.def.canPick ? 1 : 0) - 1;
-                    let newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                    let newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                    createjs.Tween.get(token)
-                        .to({
-                            x: newX,
-                            y: newY
-                        }, 200);
+                    let sprite = self.playerTokenById[p.playerId];
+                    self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
+                    return false;
                 });
 
                 EventBus.getInstance().registerConsumer(EventType.ROOM_ITEM_OBTAINED, (p: RoomItemObtainedPayload): boolean => {
@@ -257,8 +287,8 @@ namespace Catacombs {
                         return;
                     let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + p.item.name + '.png'));
                     stage.addChild(sprite);
-                    sprite.x = mapCont.x + Gfx.ROOM_IMG_SIZE * (p.room.mapx + 0.5);
-                    sprite.y = mapCont.y + Gfx.ROOM_IMG_SIZE * (p.room.mapy + 0.5);
+                    sprite.x = self.mapCont.x + Gfx.ROOM_IMG_SIZE * (p.room.mapx + 0.5);
+                    sprite.y = self.mapCont.y + Gfx.ROOM_IMG_SIZE * (p.room.mapy + 0.5);
                     createjs.Tween.get(sprite)
                         .to({
                             x: rmenu.x,
@@ -292,21 +322,15 @@ namespace Catacombs {
                         lastX += Gfx.UI_TOKEN_IMG_SIZE + 15;
                     }
                 });
-            })
+            });
+
+            // aby se přidali tokeny hráčů
+            self.drawRoomTokens(mapCenter, mapCenter);
 
             EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
                 self.deactivatePlayerTokens();
-                let token = self.monsters[p.monsterId];
-                let monster = self.proc.monsters[p.monsterId];
-                let room = self.proc.map.rooms.getValue(p.toX, p.toY);
-                let pos = Object.keys(room.monsters).length + Object.keys(room.players).length + (room.treasure ? 1 : 0) - 1;
-                let newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                let newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
-                createjs.Tween.get(token)
-                    .to({
-                        x: newX,
-                        y: newY
-                    }, 200);
+                let sprite = self.monsterTokenById[p.monsterId];
+                self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                 return false;
             });
 
@@ -326,26 +350,26 @@ namespace Catacombs {
 
             EventBus.getInstance().registerConsumer(EventType.KEEPER_ACTIVATE, (p: SimpleEventPayload): boolean => {
                 let toBounce = [keeperIcon];
-                self.monsters.forEach((sprite, i) => {
+                self.monsterTokenById.forEach((sprite, i) => {
                     toBounce.push(sprite);
                     let text = new PIXI.Text("?", { fontFamily: 'Arial', fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
                     text.anchor.set(0.5, 0.5);
                     text.x = sprite.x;
                     text.y = sprite.y;
-                    mapTokensCont.addChild(text);
+                    self.mapTokensCont.addChild(text);
                     toBounce.push(text);
                     self.questionMarks.push(text);
                     let onClick = () => {
                         self.controls.activeMonster = i;
                         sprite.interactive = false;
                         bounceStop();
-                        self.questionMarks.forEach((q) => { mapTokensCont.removeChild(q) });
+                        self.questionMarks.forEach((q) => { self.mapTokensCont.removeChild(q) });
                         self.questionMarks = [];
                         bounce([sprite]);
 
                         let room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
                         room.players.forEach((player) => {
-                            let playerUI = self.players[player.id];
+                            let playerUI = self.playerTokenById[player.id];
                             playerUI.interactive = true;
                         })
                     };
@@ -359,6 +383,7 @@ namespace Catacombs {
                 bounce(toBounce);
                 return false;
             });
+
         }
 
         private createBtn(caption: string, color: number, width: number, height: number, onClick: Function): PIXI.Container {
@@ -382,14 +407,50 @@ namespace Catacombs {
             return btn;
         }
 
-        public deactivateMonsterTokens() {
-            this.monsters.forEach((monster) => {
+        private drawRoomTokens(x: number, y: number) {
+            this.roomSprites.getValue(x, y).forEach((sprite, i) => {
+                let newX = 2.5 + (i % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                let newY = 2.5 + Math.floor(i / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                if (sprite.parent) {
+                    createjs.Tween.get(sprite)
+                        .to({
+                            x: newX,
+                            y: newY
+                        }, 200);
+                } else {
+                    sprite.anchor.set(0.5);
+                    sprite.x = newX;
+                    sprite.y = newY;
+                    this.mapTokensCont.addChild(sprite);
+                }
+            });
+        }
+
+        private moveSprite(sprite: RoomSprite, fromX: number, fromY: number, toX: number, toY: number) {
+            let fromRoomSprites = this.roomSprites.getValue(fromX, fromY);
+            // vytáhni sprite z pořadníku staré místnosti a sniž pořadí všech sprites, 
+            // co byly v pořadí za ním (budou se posouvat na jeho místo)
+            fromRoomSprites.splice(sprite.roomPos, 1);
+            for (let i = sprite.roomPos; i < fromRoomSprites.length; i++) {
+                fromRoomSprites[i].roomPos--;
+            }
+            // zapiš sprite na konec pořadníku nové místnosti
+            let toRoomSprites = this.roomSprites.getValue(toX, toY);
+            sprite.roomPos = toRoomSprites.length;
+            toRoomSprites.push(sprite);
+            // překresli s animací sprites v místnostech
+            this.drawRoomTokens(fromX, fromY);
+            this.drawRoomTokens(toX, toY);
+        }
+
+        private deactivateMonsterTokens() {
+            this.monsterTokenById.forEach((monster) => {
                 monster.interactive = false;
                 monster.scale.set(1, 1);
             });
         }
-        public deactivatePlayerTokens() {
-            this.players.forEach((player) => {
+        private deactivatePlayerTokens() {
+            this.playerTokenById.forEach((player) => {
                 player.interactive = false;
                 player.scale.set(1, 1);
             });

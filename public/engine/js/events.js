@@ -19,6 +19,7 @@ var Catacombs;
         EventType[EventType["ROOM_ITEM_OBTAINED"] = 4] = "ROOM_ITEM_OBTAINED";
         EventType[EventType["PLAYER_ACTIVATE"] = 5] = "PLAYER_ACTIVATE";
         EventType[EventType["KEEPER_ACTIVATE"] = 6] = "KEEPER_ACTIVATE";
+        EventType[EventType["LOG"] = 7] = "LOG";
     })(EventType = Catacombs.EventType || (Catacombs.EventType = {}));
     var EventPayload = (function () {
         function EventPayload(type) {

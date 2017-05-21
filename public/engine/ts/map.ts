@@ -40,8 +40,10 @@ namespace Catacombs {
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
                 // jsem-li na okraji, mám centerDist=3, takže se od maxTier neodečte nic
                 let monster = Monster.createRandom(this, MonsterDef.monsterDefs.length - (this.center - centerDist), mapx, mapy);
-                room.monsters[monster.id] = monster;
-                this.proc.monsters[monster.id] = monster;
+                if (monster) {
+                    room.monsters[monster.id] = monster;
+                    this.proc.monsters[monster.id] = monster;
+                }
             } else {
                 this.noMonsterCases--;
             }

@@ -22,7 +22,8 @@ namespace Catacombs {
                     return Monster.create(map, mapx, mapy, MonsterDef.monsterDefs[m]);
                 m = (m + 1) % maxTier;
             }
-            alert("Nepodařilo se získat náhodného netvora - nejsou volné karty!");
+            // To nevadí
+            // alert("Nepodařilo se získat náhodného netvora - nejsou volné karty!");
             return null;
         }
 
