@@ -5,6 +5,9 @@ namespace Catacombs {
         public rooms = new Array2D<Room>();
         public center: number;
 
+        public noMonsterCases = 4;
+        public noTreasureCases = 4;
+
         constructor(public sideSize: number, private proc: Proc) {
             this.center = Math.floor(this.sideSize / 2);
             let def = RoomDef.startRoom();
@@ -30,7 +33,8 @@ namespace Catacombs {
             // obsah místnosti
             let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + TreasureDef.totalAvailableInstances));
             let limit = MonsterDef.totalAvailableInstances;
-            if (rnd < limit) {
+
+            if (Math.random() * (MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
@@ -39,12 +43,18 @@ namespace Catacombs {
                 room.monsters[monster.id] = monster;
                 this.proc.monsters[monster.id] = monster;
             } else {
+                this.noMonsterCases--;
+            }
+
+            if (Math.random() * (TreasureDef.totalAvailableInstances + this.noTreasureCases) > this.noTreasureCases) {
                 limit += TreasureDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    let item = Treasure.createRandom(this, mapx, mapy);
-                    room.items.push(item);
-                    this.proc.items.push(item);
+                    let treasure = Treasure.createRandom(this, mapx, mapy);
+                    room.treasure = treasure;
+                    this.proc.treasures.push(treasure);
                 }
+            } else {
+                this.noTreasureCases--;
             }
 
             this.rooms.setValue(mapx, mapy, room);
@@ -57,7 +67,7 @@ namespace Catacombs {
     export class Room {
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
-        public items = new Array<Treasure>();
+        public treasure: Treasure;
         constructor(public def: RoomDef, public mapx: number, public mapy: number, public rotatedExits: number, public rotation: number) {
             def.availableInstances--;
             RoomDef.totalAvailableInstances--;

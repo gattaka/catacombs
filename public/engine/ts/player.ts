@@ -32,10 +32,10 @@ namespace Catacombs {
             toRoom.players[this.id] = this;
             EventBus.getInstance().fireEvent(new PlayerMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
             let player = this;
-            toRoom.items.splice(0, toRoom.items.length).forEach((i: Treasure) => {
-                player.takeItem(i);
-                EventBus.getInstance().fireEvent(new RoomItemObtainedPayload(toRoom, i.def, this.id));
-            });
+            if (toRoom.treasure && toRoom.treasure.def.canPick) {
+                player.takeItem(toRoom.treasure);
+                EventBus.getInstance().fireEvent(new RoomItemObtainedPayload(toRoom, toRoom.treasure.def, this.id));
+            }
         }
 
         takeItem(item: Treasure) {

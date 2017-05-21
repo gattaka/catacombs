@@ -5,20 +5,21 @@ var Catacombs;
             var _this = this;
             this.controls = controls;
             this.proc = proc;
-            this.rooms = new Catacombs.Array2D();
+            this.roomSprites = new Catacombs.Array2D();
             this.players = new Array();
             this.monsters = new Array();
+            this.treasures = new Array();
             this.questionMarks = new Array();
             var self = this;
             // Mapa
             var mapCont = new PIXI.Container();
-            var creaturesCont = new PIXI.Container();
+            var mapTokensCont = new PIXI.Container();
             stage.addChild(mapCont);
-            stage.addChild(creaturesCont);
-            mapCont.fixedWidth = creaturesCont.fixedWidth = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
-            mapCont.fixedHeight = creaturesCont.fixedHeight = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
-            mapCont.x = creaturesCont.x = stage.fixedWidth / 2 - mapCont.fixedWidth / 2;
-            mapCont.y = creaturesCont.y = stage.fixedHeight / 2 - mapCont.fixedHeight / 2;
+            stage.addChild(mapTokensCont);
+            mapCont.fixedWidth = mapTokensCont.fixedWidth = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
+            mapCont.fixedHeight = mapTokensCont.fixedHeight = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
+            mapCont.x = mapTokensCont.x = stage.fixedWidth / 2 - mapCont.fixedWidth / 2;
+            mapCont.y = mapTokensCont.y = stage.fixedHeight / 2 - mapCont.fixedHeight / 2;
             Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_DISCOVERED, function (p) {
                 var room = proc.map.rooms.getValue(p.x, p.y);
                 var sprite = new PIXI.Sprite(room.def.tex);
@@ -32,6 +33,8 @@ var Catacombs;
                     .to({
                     alpha: 1
                 }, 200);
+                var roomSprites = new Array();
+                self.roomSprites.setValue(p.x, p.y, roomSprites);
                 var mCounter = 0;
                 for (var _i = 0, _a = room.monsters; _i < _a.length; _i++) {
                     var monster = _a[_i];
@@ -39,21 +42,22 @@ var Catacombs;
                         continue;
                     var sprite_1 = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + monster.def.name + '_token.png'));
                     sprite_1.anchor.set(0.5);
-                    creaturesCont.addChild(sprite_1);
+                    mapTokensCont.addChild(sprite_1);
                     _this.monsters[monster.id] = sprite_1;
-                    var room_1 = self.proc.map.rooms.getValue(p.x, p.y);
-                    var pos = Object.keys(room_1.monsters).length + Object.keys(room_1.players).length - 1 - mCounter;
+                    var pos = Object.keys(room.monsters).length - 1 - mCounter;
                     sprite_1.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     sprite_1.y = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     mCounter++;
                 }
-                // let item = room.items[room.items.length - 1];
-                // if (item) {
-                //     let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.def.name + '_token.png'));
-                //     mapCont.addChild(sprite);
-                //     sprite.x = Gfx.ROOM_IMG_SIZE * (p.x + 1) - 10 - Gfx.TOKEN_IMG_SIZE;
-                //     sprite.y = Gfx.ROOM_IMG_SIZE * p.y + 10;
-                // }
+                if (room.treasure && !room.treasure.def.canPick) {
+                    var sprite_2 = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + room.treasure.def.name + '.png'));
+                    sprite_2.anchor.set(0.5);
+                    mapTokensCont.addChild(sprite_2);
+                    _this.treasures[room.treasure.id] = sprite_2;
+                    var pos = Object.keys(room.monsters).length;
+                    sprite_2.x = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.x * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                    sprite_2.y = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.y * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
+                }
                 return false;
             });
             for (var mapy = 0; mapy < proc.map.sideSize; mapy++) {
@@ -66,7 +70,6 @@ var Catacombs;
                         sprite.x = x;
                         sprite.y = y;
                         mapCont.addChild(sprite);
-                        this.rooms.setValue(mapx, mapy, sprite);
                     }
                     else {
                         var shape = new PIXI.Graphics();
@@ -76,7 +79,6 @@ var Catacombs;
                         mapCont.addChild(shape);
                         shape.x = x;
                         shape.y = y;
-                        this.rooms.setValue(mapx, mapy, shape);
                     }
                 }
             }
@@ -107,7 +109,8 @@ var Catacombs;
                 lmenu.addChild(token);
                 var buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - Gfx.UI_TOKEN_IMG_SIZE, 30, function () {
                     var activePlayer = self.controls.activePlayer;
-                    // TODO
+                    if (!self.controls.activeKeeper) {
+                    }
                 });
                 buyBtn.x = token.x + 10 + Gfx.UI_TOKEN_IMG_SIZE;
                 buyBtn.y = token.y + Gfx.UI_TOKEN_IMG_SIZE / 2 - buyBtn.getBounds().height / 2;
@@ -115,7 +118,7 @@ var Catacombs;
             });
             Object.keys(Catacombs.TreasureDef.defsByName).forEach(function (name, i) {
                 var def = Catacombs.TreasureDef.defsByName[name];
-                if (!def.pickable)
+                if (!def.canBuy)
                     return;
                 var token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '.png'));
                 token.x = 10;
@@ -157,7 +160,7 @@ var Catacombs;
             // player icons
             proc.players.forEach(function (player, i) {
                 var token = new PIXI.Sprite(PIXI.Texture.fromImage('images/player' + i + '_token.png'));
-                creaturesCont.addChild(token);
+                mapTokensCont.addChild(token);
                 token.anchor.set(0.5, 0.5);
                 token.interactive = false;
                 token.buttonMode = true;
@@ -172,9 +175,10 @@ var Catacombs;
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.PLAYER_ACTIVATE, function (p) {
                     if (i != p.payload)
                         return;
-                    self.questionMarks.forEach(function (q) { creaturesCont.removeChild(q); });
+                    self.questionMarks.forEach(function (q) { mapTokensCont.removeChild(q); });
                     self.questionMarks = [];
                     bounce([token, playerMenuIcon]);
+                    self.deactivateMonsterTokens();
                 });
                 var healthUI = new PIXI.Container();
                 rmenu.addChild(healthUI);
@@ -218,7 +222,7 @@ var Catacombs;
                     if (i != p.playerId)
                         return;
                     var room = self.proc.map.rooms.getValue(p.toX, p.toY);
-                    var pos = Object.keys(room.monsters).length + Object.keys(room.players).length - 1;
+                    var pos = Object.keys(room.monsters).length + Object.keys(room.players).length + (room.treasure && !room.treasure.def.canPick ? 1 : 0) - 1;
                     var newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     var newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                     createjs.Tween.get(token)
@@ -272,7 +276,7 @@ var Catacombs;
                 var token = self.monsters[p.monsterId];
                 var monster = self.proc.monsters[p.monsterId];
                 var room = self.proc.map.rooms.getValue(p.toX, p.toY);
-                var pos = Object.keys(room.monsters).length + Object.keys(room.players).length - 1;
+                var pos = Object.keys(room.monsters).length + Object.keys(room.players).length + (room.treasure ? 1 : 0) - 1;
                 var newX = 2.5 + (pos % 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toX * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                 var newY = 2.5 + Math.floor(pos / 3) * (Gfx.MAP_TOKEN_IMG_SIZE + 2.5) + p.toY * Gfx.ROOM_IMG_SIZE + Gfx.MAP_TOKEN_IMG_SIZE / 2;
                 createjs.Tween.get(token)
@@ -302,14 +306,14 @@ var Catacombs;
                     text.anchor.set(0.5, 0.5);
                     text.x = sprite.x;
                     text.y = sprite.y;
-                    creaturesCont.addChild(text);
+                    mapTokensCont.addChild(text);
                     toBounce.push(text);
                     self.questionMarks.push(text);
                     var onClick = function () {
                         self.controls.activeMonster = i;
                         sprite.interactive = false;
                         bounceStop();
-                        self.questionMarks.forEach(function (q) { creaturesCont.removeChild(q); });
+                        self.questionMarks.forEach(function (q) { mapTokensCont.removeChild(q); });
                         self.questionMarks = [];
                         bounce([sprite]);
                         var room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
@@ -347,6 +351,12 @@ var Catacombs;
             btn.addChild(bgr);
             btn.addChild(text);
             return btn;
+        };
+        Gfx.prototype.deactivateMonsterTokens = function () {
+            this.monsters.forEach(function (monster) {
+                monster.interactive = false;
+                monster.scale.set(1, 1);
+            });
         };
         Gfx.prototype.deactivatePlayerTokens = function () {
             this.players.forEach(function (player) {

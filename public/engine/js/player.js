@@ -35,16 +35,15 @@ var Catacombs;
             return player;
         };
         Player.prototype.innerMove = function (fromRoom, toRoom) {
-            var _this = this;
             if (fromRoom)
                 delete fromRoom.players[this.id];
             toRoom.players[this.id] = this;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
             var player = this;
-            toRoom.items.splice(0, toRoom.items.length).forEach(function (i) {
-                player.takeItem(i);
-                Catacombs.EventBus.getInstance().fireEvent(new Catacombs.RoomItemObtainedPayload(toRoom, i.def, _this.id));
-            });
+            if (toRoom.treasure && toRoom.treasure.def.canPick) {
+                player.takeItem(toRoom.treasure);
+                Catacombs.EventBus.getInstance().fireEvent(new Catacombs.RoomItemObtainedPayload(toRoom, toRoom.treasure.def, this.id));
+            }
         };
         Player.prototype.takeItem = function (item) {
             var invItem = this.inventory[item.def.name];

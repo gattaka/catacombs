@@ -5,6 +5,8 @@ var Catacombs;
             this.sideSize = sideSize;
             this.proc = proc;
             this.rooms = new Catacombs.Array2D();
+            this.noMonsterCases = 4;
+            this.noTreasureCases = 4;
             this.center = Math.floor(this.sideSize / 2);
             var def = RoomDef.startRoom();
             var room = new Room(def, this.center, this.center, def.exits, 0);
@@ -27,7 +29,7 @@ var Catacombs;
             // obsah místnosti
             var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.TreasureDef.totalAvailableInstances));
             var limit = Catacombs.MonsterDef.totalAvailableInstances;
-            if (rnd < limit) {
+            if (Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
                 // jsem-li ve středu, mám centerDist=0, takže se od maxTier odečte nejvíc
@@ -37,12 +39,18 @@ var Catacombs;
                 this.proc.monsters[monster.id] = monster;
             }
             else {
+                this.noMonsterCases--;
+            }
+            if (Math.random() * (Catacombs.TreasureDef.totalAvailableInstances + this.noTreasureCases) > this.noTreasureCases) {
                 limit += Catacombs.TreasureDef.totalAvailableInstances;
                 if (rnd < limit) {
-                    var item = Catacombs.Treasure.createRandom(this, mapx, mapy);
-                    room.items.push(item);
-                    this.proc.items.push(item);
+                    var treasure = Catacombs.Treasure.createRandom(this, mapx, mapy);
+                    room.treasure = treasure;
+                    this.proc.treasures.push(treasure);
                 }
+            }
+            else {
+                this.noTreasureCases--;
             }
             this.rooms.setValue(mapx, mapy, room);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.TupleEventPayload(Catacombs.EventType.ROOM_DISCOVERED, mapx, mapy));
@@ -60,7 +68,6 @@ var Catacombs;
             this.rotation = rotation;
             this.players = new Array();
             this.monsters = new Array();
-            this.items = new Array();
             def.availableInstances--;
             RoomDef.totalAvailableInstances--;
         }

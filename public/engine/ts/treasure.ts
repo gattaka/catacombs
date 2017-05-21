@@ -4,8 +4,8 @@ namespace Catacombs {
         public static totalAvailableInstances = 0;
         public static defsByName: { [name: string]: TreasureDef } = {};
         private static defsByOrder = [];
-        public static register(name: string, price: number, availableInstances: number, pickable = true) {
-            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, pickable);
+        public static register(name: string, price: number, availableInstances: number, canBuy = true, canPick = true) {
+            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, canBuy, canPick);
             TreasureDef.defsByOrder.push(TreasureDef.defsByName[name]);
         }
 
@@ -20,7 +20,7 @@ namespace Catacombs {
             return null;
         }
 
-        private constructor(public name: string, public price: number, public availableInstances: number, public pickable: boolean) {
+        private constructor(public name: string, public price: number, public availableInstances: number, public canBuy: boolean, public canPick: boolean) {
             TreasureDef.totalAvailableInstances += availableInstances;
         }
 
@@ -57,13 +57,17 @@ namespace Catacombs {
     }
 
     // položky
-    TreasureDef.register("cup", 1, 15);
-    TreasureDef.register("gem", 5, 10);
-    TreasureDef.register("amulet", 10, 5);
-    TreasureDef.register("coins", 15, 1);
-    TreasureDef.register("blue_chest", 0, 1, false);
-    TreasureDef.register("red_chest", 0, 1, false);
-    TreasureDef.register("green_chest", 0, 1, false);
-    TreasureDef.register("yellow_chest", 0, 1, false);
+    TreasureDef.register("coin", 1, 15);
+    TreasureDef.register("cup", 5, 10);
+    TreasureDef.register("gems", 10, 5);
+    TreasureDef.register("amulet", 15, 2);
+    TreasureDef.register("blue_key", 0, 1, false);
+    TreasureDef.register("red_key", 0, 1, false);
+    TreasureDef.register("green_key", 0, 1, false);
+    TreasureDef.register("yellow_key", 0, 1, false);
+    TreasureDef.register("blue_chest_token", 0, 1, false, false);
+    TreasureDef.register("red_chest_token", 0, 1, false, false);
+    TreasureDef.register("green_chest_token", 0, 1, false, false);
+    TreasureDef.register("yellow_chest_token", 0, 1, false, false);
 
 }

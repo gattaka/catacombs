@@ -3,7 +3,7 @@ var Catacombs;
     var Proc = (function () {
         function Proc() {
             this.players = new Array();
-            this.items = new Array();
+            this.treasures = new Array();
             this.monsters = new Array();
             // Mapa
             this.map = new Catacombs.Map(9, this);

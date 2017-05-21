@@ -11,16 +11,18 @@ var __extends = (this && this.__extends) || (function () {
 var Catacombs;
 (function (Catacombs) {
     var TreasureDef = (function () {
-        function TreasureDef(name, price, availableInstances, pickable) {
+        function TreasureDef(name, price, availableInstances, canBuy, canPick) {
             this.name = name;
             this.price = price;
             this.availableInstances = availableInstances;
-            this.pickable = pickable;
+            this.canBuy = canBuy;
+            this.canPick = canPick;
             TreasureDef.totalAvailableInstances += availableInstances;
         }
-        TreasureDef.register = function (name, price, availableInstances, pickable) {
-            if (pickable === void 0) { pickable = true; }
-            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, pickable);
+        TreasureDef.register = function (name, price, availableInstances, canBuy, canPick) {
+            if (canBuy === void 0) { canBuy = true; }
+            if (canPick === void 0) { canPick = true; }
+            TreasureDef.defsByName[name] = new TreasureDef(name, price, availableInstances, canBuy, canPick);
             TreasureDef.defsByOrder.push(TreasureDef.defsByName[name]);
         };
         TreasureDef.getRandom = function () {
@@ -66,12 +68,16 @@ var Catacombs;
     Treasure.treasureCount = 0;
     Catacombs.Treasure = Treasure;
     // položky
-    TreasureDef.register("cup", 1, 15);
-    TreasureDef.register("gem", 5, 10);
-    TreasureDef.register("amulet", 10, 5);
-    TreasureDef.register("coins", 15, 1);
-    TreasureDef.register("blue_chest", 0, 1, false);
-    TreasureDef.register("red_chest", 0, 1, false);
-    TreasureDef.register("green_chest", 0, 1, false);
-    TreasureDef.register("yellow_chest", 0, 1, false);
+    TreasureDef.register("coin", 1, 15);
+    TreasureDef.register("cup", 5, 10);
+    TreasureDef.register("gems", 10, 5);
+    TreasureDef.register("amulet", 15, 2);
+    TreasureDef.register("blue_key", 0, 1, false);
+    TreasureDef.register("red_key", 0, 1, false);
+    TreasureDef.register("green_key", 0, 1, false);
+    TreasureDef.register("yellow_key", 0, 1, false);
+    TreasureDef.register("blue_chest_token", 0, 1, false, false);
+    TreasureDef.register("red_chest_token", 0, 1, false, false);
+    TreasureDef.register("green_chest_token", 0, 1, false, false);
+    TreasureDef.register("yellow_chest_token", 0, 1, false, false);
 })(Catacombs || (Catacombs = {}));
