@@ -11,6 +11,7 @@ namespace Catacombs {
         private static ROOM_IMG_SIZE = 100;
         private static MAP_TOKEN_IMG_SIZE = 30;
         private static UI_TOKEN_IMG_SIZE = 60;
+        private static FONT = 'Tahoma';
 
         private roomSprites = new Array2D<Array<RoomSprite>>();
 
@@ -140,7 +141,7 @@ namespace Catacombs {
                 lmenuLastY = token.y + Gfx.UI_TOKEN_IMG_SIZE;
                 lmenu.addChild(token);
 
-                let text = new PIXI.Text(" = " + def.price + "c", { fontFamily: 'Arial', fontSize: 34 + "px", fill: 0xd29e36 });
+                let text = new PIXI.Text(" = " + def.price + "c", { fontFamily: Gfx.FONT, fontSize: 34 + "px", fill: 0xd29e36 });
                 text.anchor.set(0, 0.5);
                 text.x = token.x + Gfx.UI_TOKEN_IMG_SIZE + 10;
                 text.y = token.y + Gfx.UI_TOKEN_IMG_SIZE / 2;
@@ -161,12 +162,12 @@ namespace Catacombs {
             lmenu.addChild(logBox);
             let logTexts = new Array<PIXI.Text>();
             EventBus.getInstance().registerConsumer(EventType.LOG, (p: StringEventPayload): boolean => {
-                if (logTexts.length > logBox.fixedHeight / logFontSizePX) {
+                if (logTexts.length + 1 > logBox.fixedHeight / (logFontSizePX + 10)) {
                     let oldText = logTexts.shift();
                     if (oldText)
                         logBox.removeChild(oldText);
                 }
-                let text = new PIXI.Text("- " + p.payload, { fontFamily: 'Arial', fontSize: logFontSizePX + "px", fill: 0xd29e36 });
+                let text = new PIXI.Text("- " + p.payload, { fontFamily: Gfx.FONT, fontSize: logFontSizePX + "px", fill: 0xd29e36 });
                 logTexts.forEach(t => t.y -= text.getBounds().height + 5);
                 logTexts.push(text);
                 text.anchor.set(0, 1);
@@ -309,17 +310,17 @@ namespace Catacombs {
                         let item = player.inventory[key];
                         if (item.amount <= 0)
                             continue;
-                        if (item.amount > 1) {
-                            let text = new PIXI.Text(item.amount + "", { fontFamily: 'Arial', fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
-                            invetoryUI.addChild(text);
-                            text.x = lastX;
-                            text.y = 1;
-                            lastX += text.width;
-                        }
                         let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.name + '.png'));
                         invetoryUI.addChild(sprite);
                         sprite.x = lastX;
-                        lastX += Gfx.UI_TOKEN_IMG_SIZE + 15;
+                        if (item.amount > 1) {
+                            let text = new PIXI.Text(item.amount + "x", { stroke: 0x0, strokeThickness: 4, fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xd29e36 });
+                            text.anchor.set(0, 1);
+                            invetoryUI.addChild(text);
+                            text.x = lastX;
+                            text.y = Gfx.UI_TOKEN_IMG_SIZE;
+                        }
+                        lastX += Gfx.UI_TOKEN_IMG_SIZE * 0.75;
                     }
                 });
             });
@@ -352,7 +353,7 @@ namespace Catacombs {
                 let toBounce = [keeperIcon];
                 self.monsterTokenById.forEach((sprite, i) => {
                     toBounce.push(sprite);
-                    let text = new PIXI.Text("?", { fontFamily: 'Arial', fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
+                    let text = new PIXI.Text("?", { fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
                     text.anchor.set(0.5, 0.5);
                     text.x = sprite.x;
                     text.y = sprite.y;
@@ -394,7 +395,7 @@ namespace Catacombs {
             btn.on("mouseover", () => { btn.alpha = 0.7; })
             btn.on("mouseout", () => { btn.alpha = 1; })
 
-            let text = new PIXI.Text(caption, { fontFamily: 'Arial', fontSize: height - 10 + "px", fill: color });
+            let text = new PIXI.Text(caption, { fontFamily: Gfx.FONT, fontSize: height - 10 + "px", fill: color });
             text.anchor.set(0.5, 0);
             text.x = width / 2;
             text.y = 5;

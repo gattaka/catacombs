@@ -64,7 +64,7 @@ namespace Catacombs {
     TreasureDef.register("blue_key", "modrý klíč", 0, 1, false);
     TreasureDef.register("red_key", "červený klíč", 0, 1, false);
     TreasureDef.register("green_key", "zelený klíč", 0, 1, false);
-    TreasureDef.register("yellow_key", "žlutý klič", 0, 1, false);
+    TreasureDef.register("yellow_key", "žlutý klíč", 0, 1, false);
     TreasureDef.register("blue_chest_token", "modrá truhla", 0, 1, false, false);
     TreasureDef.register("red_chest_token", "červená truhla", 0, 1, false, false);
     TreasureDef.register("green_chest_token", "zelený truhla", 0, 1, false, false);
