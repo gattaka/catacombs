@@ -32,7 +32,12 @@ var Catacombs;
             if (this.activeKeeper) {
                 this.activeKeeper = false;
                 this.activeMonster = undefined;
-                Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+                if (this.proc.players[this.activePlayer].health > 0) {
+                    Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+                }
+                else {
+                    this.next();
+                }
             }
             else {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
@@ -41,7 +46,12 @@ var Catacombs;
                     Catacombs.EventBus.getInstance().fireEvent(new Catacombs.SimpleEventPayload(Catacombs.EventType.KEEPER_ACTIVATE));
                 }
                 else {
-                    Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+                    if (this.proc.players[this.activePlayer].health > 0) {
+                        Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+                    }
+                    else {
+                        this.next();
+                    }
                 }
             }
         };

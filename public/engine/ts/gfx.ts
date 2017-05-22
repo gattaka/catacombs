@@ -273,6 +273,10 @@ namespace Catacombs {
                     }, 200);
                     player.health--;
                     healthUI.removeChildAt(healthUI.children.length - 1);
+                    if (player.health == 0) {
+                        token.texture = PIXI.Texture.fromImage('images/player' + i + '_tomb_token.png');
+                        playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + i + '_tomb.png');
+                    }
                 });
 
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_MOVE, (p: PlayerMovePayload): boolean => {
@@ -313,12 +317,14 @@ namespace Catacombs {
                         let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.name + '.png'));
                         invetoryUI.addChild(sprite);
                         sprite.x = lastX;
+                        sprite.y = 0;
                         if (item.amount > 1) {
-                            let text = new PIXI.Text(item.amount + "x", { stroke: 0x0, strokeThickness: 4, fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xd29e36 });
+                            let text = new PIXI.Text(item.amount + "x",
+                                { stroke: 0x0, strokeThickness: 4, fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xd29e36 });
                             text.anchor.set(0, 1);
                             invetoryUI.addChild(text);
                             text.x = lastX;
-                            text.y = Gfx.UI_TOKEN_IMG_SIZE;
+                            text.y = Gfx.UI_TOKEN_IMG_SIZE + 5; // TODO tohle by mělo vycházet i bez toho +5
                         }
                         lastX += Gfx.UI_TOKEN_IMG_SIZE * 0.75;
                     }
@@ -368,8 +374,11 @@ namespace Catacombs {
                         self.questionMarks = [];
                         bounce([sprite]);
 
+                        // Umožni útočit na živé hráče ve stejné místnosti
                         let room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
                         room.players.forEach((player) => {
+                            if (player.health == 0)
+                                return;
                             let playerUI = self.playerTokenById[player.id];
                             playerUI.interactive = true;
                         })

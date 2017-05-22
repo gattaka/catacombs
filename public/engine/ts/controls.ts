@@ -36,14 +36,22 @@ namespace Catacombs {
             if (this.activeKeeper) {
                 this.activeKeeper = false;
                 this.activeMonster = undefined;
-                EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+                if (this.proc.players[this.activePlayer].health > 0) {
+                    EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+                } else {
+                    this.next();
+                }
             } else {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
                 if (this.activePlayer == 0 && Monster.monstersCount > 0) {
                     this.activeKeeper = true;
                     EventBus.getInstance().fireEvent(new SimpleEventPayload(EventType.KEEPER_ACTIVATE));
                 } else {
-                    EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+                    if (this.proc.players[this.activePlayer].health > 0) {
+                        EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+                    } else {
+                        this.next();
+                    }
                 }
             }
         }
