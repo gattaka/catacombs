@@ -17,7 +17,7 @@ namespace Catacombs {
             this.players = new Array<Player>();
             for (let i = 0; i < Proc.PLAYERS_COUNT; i++) {
                 let player = Player.create(this.map);
-                this.players.push(player);
+                this.players[player.id] = player;
             }
 
         }

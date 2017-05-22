@@ -11,7 +11,7 @@ var Catacombs;
             this.players = new Array();
             for (var i = 0; i < Proc.PLAYERS_COUNT; i++) {
                 var player = Catacombs.Player.create(this.map);
-                this.players.push(player);
+                this.players[player.id] = player;
             }
         }
         return Proc;

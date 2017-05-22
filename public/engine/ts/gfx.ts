@@ -19,8 +19,6 @@ namespace Catacombs {
         private monsterTokenById = new Array<RoomSprite>();
         private treasureTokenById = new Array<RoomSprite>();
 
-        private questionMarks = new Array<PIXI.Text>();
-
         private mapCont = new PIXI.Container();
         private mapTokensCont = new PIXI.Container();
 
@@ -228,10 +226,15 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_ACTIVATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
-                    self.questionMarks.forEach((q) => { self.mapTokensCont.removeChild(q) });
-                    self.questionMarks = [];
                     bounce([token, playerMenuIcon]);
-                    self.deactivateMonsterTokens()
+                    self.deactivateMonsterTokens();
+
+                    // Umožni útočit na netvory ve stejné místnosti
+                    let room = self.proc.map.rooms.getValue(player.mapx, player.mapy);
+                    room.monsters.forEach((monster) => {
+                        let monsterUI = self.monsterTokenById[monster.id];
+                        monsterUI.interactive = true;
+                    })
                 });
 
                 let healthUI = new PIXI.Container();
@@ -357,38 +360,38 @@ namespace Catacombs {
 
             EventBus.getInstance().registerConsumer(EventType.KEEPER_ACTIVATE, (p: SimpleEventPayload): boolean => {
                 let toBounce = [keeperIcon];
-                self.monsterTokenById.forEach((sprite, i) => {
+                self.proc.monsters.forEach((monster) => {
+                    let sprite = self.monsterTokenById[monster.id];
                     toBounce.push(sprite);
-                    let text = new PIXI.Text("?", { fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
-                    text.anchor.set(0.5, 0.5);
-                    text.x = sprite.x;
-                    text.y = sprite.y;
-                    self.mapTokensCont.addChild(text);
-                    toBounce.push(text);
-                    self.questionMarks.push(text);
                     let onClick = () => {
-                        self.controls.activeMonster = i;
-                        sprite.interactive = false;
-                        bounceStop();
-                        self.questionMarks.forEach((q) => { self.mapTokensCont.removeChild(q) });
-                        self.questionMarks = [];
-                        bounce([sprite]);
+                        if (self.controls.activeKeeper) {
+                            // vybírám netvora v tahu keepera
+                            self.controls.activeMonster = monster.id;
+                            bounceStop();
+                            bounce([sprite]);
+                            self.deactivateMonsterTokens();
 
-                        // Umožni útočit na živé hráče ve stejné místnosti
-                        let room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
-                        room.players.forEach((player) => {
-                            if (player.health == 0)
-                                return;
-                            let playerUI = self.playerTokenById[player.id];
-                            playerUI.interactive = true;
-                        })
+                            // Umožni útočit na živé hráče ve stejné místnosti
+                            let room = self.proc.map.rooms.getValue(monster.mapx, monster.mapy);
+                            room.players.forEach((player) => {
+                                if (player.health == 0)
+                                    return;
+                                let playerUI = self.playerTokenById[player.id];
+                                playerUI.interactive = true;
+                            })
+                        } else {
+                            // útočím na netvora v tahu hráče
+                            // sprite.parent.removeChild(sprite);
+                            // self.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
+                            // delete self.monsterTokenById[monster.id];
+                            // self.drawRoomTokens(monster.mapx, monster.mapy);
+                            // delete self.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
+                            // delete self.proc.monsters[monster.id];
+                        }
                     };
                     sprite.interactive = true;
                     sprite.on('click', onClick);
-                    text.interactive = true;
-                    text.on('click', onClick);
                     sprite.buttonMode = true;
-                    text.buttonMode = true;
                 });
                 bounce(toBounce);
                 return false;

@@ -28,7 +28,6 @@ var Catacombs;
             this.playerTokenById = new Array();
             this.monsterTokenById = new Array();
             this.treasureTokenById = new Array();
-            this.questionMarks = new Array();
             this.mapCont = new PIXI.Container();
             this.mapTokensCont = new PIXI.Container();
             var self = this;
@@ -217,10 +216,14 @@ var Catacombs;
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.PLAYER_ACTIVATE, function (p) {
                     if (i != p.payload)
                         return;
-                    self.questionMarks.forEach(function (q) { self.mapTokensCont.removeChild(q); });
-                    self.questionMarks = [];
                     bounce([token, playerMenuIcon]);
                     self.deactivateMonsterTokens();
+                    // Umožni útočit na netvory ve stejné místnosti
+                    var room = self.proc.map.rooms.getValue(player.mapx, player.mapy);
+                    room.monsters.forEach(function (monster) {
+                        var monsterUI = self.monsterTokenById[monster.id];
+                        monsterUI.interactive = true;
+                    });
                 });
                 var healthUI = new PIXI.Container();
                 rmenu.addChild(healthUI);
@@ -334,37 +337,38 @@ var Catacombs;
             rmenu.addChild(skipBtn);
             Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.KEEPER_ACTIVATE, function (p) {
                 var toBounce = [keeperIcon];
-                self.monsterTokenById.forEach(function (sprite, i) {
+                self.proc.monsters.forEach(function (monster) {
+                    var sprite = self.monsterTokenById[monster.id];
                     toBounce.push(sprite);
-                    var text = new PIXI.Text("?", { fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xffff10 });
-                    text.anchor.set(0.5, 0.5);
-                    text.x = sprite.x;
-                    text.y = sprite.y;
-                    self.mapTokensCont.addChild(text);
-                    toBounce.push(text);
-                    self.questionMarks.push(text);
                     var onClick = function () {
-                        self.controls.activeMonster = i;
-                        sprite.interactive = false;
-                        bounceStop();
-                        self.questionMarks.forEach(function (q) { self.mapTokensCont.removeChild(q); });
-                        self.questionMarks = [];
-                        bounce([sprite]);
-                        // Umožni útočit na živé hráče ve stejné místnosti
-                        var room = self.proc.map.rooms.getValue(self.proc.monsters[i].mapx, self.proc.monsters[i].mapy);
-                        room.players.forEach(function (player) {
-                            if (player.health == 0)
-                                return;
-                            var playerUI = self.playerTokenById[player.id];
-                            playerUI.interactive = true;
-                        });
+                        if (self.controls.activeKeeper) {
+                            // vybírám netvora v tahu keepera
+                            self.controls.activeMonster = monster.id;
+                            bounceStop();
+                            bounce([sprite]);
+                            self.deactivateMonsterTokens();
+                            // Umožni útočit na živé hráče ve stejné místnosti
+                            var room = self.proc.map.rooms.getValue(monster.mapx, monster.mapy);
+                            room.players.forEach(function (player) {
+                                if (player.health == 0)
+                                    return;
+                                var playerUI = self.playerTokenById[player.id];
+                                playerUI.interactive = true;
+                            });
+                        }
+                        else {
+                            // útočím na netvora v tahu hráče
+                            // sprite.parent.removeChild(sprite);
+                            // self.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
+                            // delete self.monsterTokenById[monster.id];
+                            // self.drawRoomTokens(monster.mapx, monster.mapy);
+                            // delete self.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
+                            // delete self.proc.monsters[monster.id];
+                        }
                     };
                     sprite.interactive = true;
                     sprite.on('click', onClick);
-                    text.interactive = true;
-                    text.on('click', onClick);
                     sprite.buttonMode = true;
-                    text.buttonMode = true;
                 });
                 bounce(toBounce);
                 return false;
