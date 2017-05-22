@@ -22,6 +22,8 @@ namespace Catacombs {
         private mapCont = new PIXI.Container();
         private mapTokensCont = new PIXI.Container();
 
+        private tweenBounces = new Array<PIXI.DisplayObject>();
+
         constructor(stage: PIXI.Container, private controls: Controls, private proc: Proc) {
             let self = this;
 
@@ -56,6 +58,7 @@ namespace Catacombs {
                     let sprite = new RoomSprite(monster.def.name + '_token.png', roomSprites.length);
                     this.monsterTokenById[monster.id] = sprite;
                     roomSprites.push(sprite);
+                    this.initMonsterSprite(monster);
                 }
                 if (room.treasure && !room.treasure.def.canPick) {
                     let sprite = new RoomSprite(room.treasure.def.name + '.png', roomSprites.length);
@@ -181,29 +184,6 @@ namespace Catacombs {
             rmenu.x = stage.fixedWidth - 10 - rmenu.fixedWidth;
             rmenu.y = 10;
 
-            let tweenBounces = new Array<PIXI.DisplayObject>();
-            let bounceStop = () => {
-                tweenBounces.forEach((t) => {
-                    createjs.Tween.removeTweens(t.scale);
-                    t.scale.set(1, 1);
-                })
-                tweenBounces = [];
-            }
-            let bounce = (sprites: Array<PIXI.Sprite>) => {
-                bounceStop();
-                sprites.forEach((s, i) => {
-                    tweenBounces[i] = s;
-                    createjs.Tween.get(s.scale, { loop: true })
-                        .to({
-                            x: 1.3,
-                            y: 1.3
-                        }, 200).to({
-                            x: 1,
-                            y: 1
-                        }, 200);
-                });
-            }
-
             let mapCenter = self.proc.map.center;
             let centerRoomSprites = new Array<RoomSprite>()
             self.roomSprites.setValue(mapCenter, mapCenter, centerRoomSprites);
@@ -226,12 +206,14 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_ACTIVATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
-                    bounce([token, playerMenuIcon]);
+                    this.bounce([token, playerMenuIcon]);
                     self.deactivateMonsterTokens();
 
                     // Umožni útočit na netvory ve stejné místnosti
                     let room = self.proc.map.rooms.getValue(player.mapx, player.mapy);
                     room.monsters.forEach((monster) => {
+                        if (!monster)
+                            return;
                         let monsterUI = self.monsterTokenById[monster.id];
                         monsterUI.interactive = true;
                     })
@@ -363,40 +345,68 @@ namespace Catacombs {
                 self.proc.monsters.forEach((monster) => {
                     let sprite = self.monsterTokenById[monster.id];
                     toBounce.push(sprite);
-                    let onClick = () => {
-                        if (self.controls.activeKeeper) {
-                            // vybírám netvora v tahu keepera
-                            self.controls.activeMonster = monster.id;
-                            bounceStop();
-                            bounce([sprite]);
-                            self.deactivateMonsterTokens();
-
-                            // Umožni útočit na živé hráče ve stejné místnosti
-                            let room = self.proc.map.rooms.getValue(monster.mapx, monster.mapy);
-                            room.players.forEach((player) => {
-                                if (player.health == 0)
-                                    return;
-                                let playerUI = self.playerTokenById[player.id];
-                                playerUI.interactive = true;
-                            })
-                        } else {
-                            // útočím na netvora v tahu hráče
-                            // sprite.parent.removeChild(sprite);
-                            // self.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
-                            // delete self.monsterTokenById[monster.id];
-                            // self.drawRoomTokens(monster.mapx, monster.mapy);
-                            // delete self.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
-                            // delete self.proc.monsters[monster.id];
-                        }
-                    };
                     sprite.interactive = true;
-                    sprite.on('click', onClick);
                     sprite.buttonMode = true;
                 });
-                bounce(toBounce);
+                this.bounce(toBounce);
                 return false;
             });
 
+        }
+
+        private bounceStop() {
+            this.tweenBounces.forEach((t) => {
+                createjs.Tween.removeTweens(t.scale);
+                t.scale.set(1, 1);
+            })
+            this.tweenBounces = [];
+        }
+
+        private bounce(sprites: Array<PIXI.Sprite>) {
+            this.bounceStop();
+            sprites.forEach((s, i) => {
+                this.tweenBounces[i] = s;
+                createjs.Tween.get(s.scale, { loop: true })
+                    .to({
+                        x: 1.3,
+                        y: 1.3
+                    }, 200).to({
+                        x: 1,
+                        y: 1
+                    }, 200);
+            });
+        }
+
+        private initMonsterSprite(monster: Monster) {
+            let sprite = this.monsterTokenById[monster.id];
+            let onClick = () => {
+                if (this.controls.activeKeeper) {
+                    // vybírám netvora v tahu keepera
+                    this.controls.activeMonster = monster.id;
+                    this.bounceStop();
+                    this.bounce([sprite]);
+                    this.deactivateMonsterTokens();
+
+                    // Umožni útočit na živé hráče ve stejné místnosti
+                    let room = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
+                    room.players.forEach((player) => {
+                        if (player.health == 0)
+                            return;
+                        let playerUI = this.playerTokenById[player.id];
+                        playerUI.interactive = true;
+                    })
+                } else {
+                    // útočím na netvora v tahu hráče
+                    sprite.parent.removeChild(sprite);
+                    this.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
+                    delete this.monsterTokenById[monster.id];
+                    delete this.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
+                    delete this.proc.monsters[monster.id];
+                    this.drawRoomTokens(monster.mapx, monster.mapy);
+                    this.deactivateMonsterTokens();
+                }
+            };
+            sprite.on('click', onClick);
         }
 
         private createBtn(caption: string, color: number, width: number, height: number, onClick: Function): PIXI.Container {
