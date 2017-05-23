@@ -398,7 +398,7 @@ namespace Catacombs {
                 } else {
                     // útočím na netvora v tahu hráče
                     sprite.parent.removeChild(sprite);
-                    this.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
+                    this.unregisterSpriteFromRoom(sprite, monster.mapx, monster.mapy);
                     delete this.monsterTokenById[monster.id];
                     delete this.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
                     delete this.proc.monsters[monster.id];
@@ -449,7 +449,7 @@ namespace Catacombs {
             });
         }
 
-        private moveSprite(sprite: RoomSprite, fromX: number, fromY: number, toX: number, toY: number) {
+        private unregisterSpriteFromRoom(sprite: RoomSprite, fromX: number, fromY: number) {
             let fromRoomSprites = this.roomSprites.getValue(fromX, fromY);
             // vytáhni sprite z pořadníku staré místnosti a sniž pořadí všech sprites, 
             // co byly v pořadí za ním (budou se posouvat na jeho místo)
@@ -457,10 +457,18 @@ namespace Catacombs {
             for (let i = sprite.roomPos; i < fromRoomSprites.length; i++) {
                 fromRoomSprites[i].roomPos--;
             }
+        }
+
+        private registerSpriteToRoom(sprite: RoomSprite, toX: number, toY: number) {
             // zapiš sprite na konec pořadníku nové místnosti
             let toRoomSprites = this.roomSprites.getValue(toX, toY);
             sprite.roomPos = toRoomSprites.length;
             toRoomSprites.push(sprite);
+        }
+
+        private moveSprite(sprite: RoomSprite, fromX: number, fromY: number, toX: number, toY: number) {
+            this.unregisterSpriteFromRoom(sprite, fromX, fromY);
+            this.registerSpriteToRoom(sprite, toX, toY);
             // překresli s animací sprites v místnostech
             this.drawRoomTokens(fromX, fromY);
             this.drawRoomTokens(toX, toY);

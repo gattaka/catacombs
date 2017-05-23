@@ -373,7 +373,7 @@ var Catacombs;
                 else {
                     // útočím na netvora v tahu hráče
                     sprite.parent.removeChild(sprite);
-                    _this.roomSprites.getValue(monster.mapx, monster.mapy).splice(sprite.roomPos, 1);
+                    _this.unregisterSpriteFromRoom(sprite, monster.mapx, monster.mapy);
                     delete _this.monsterTokenById[monster.id];
                     delete _this.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
                     delete _this.proc.monsters[monster.id];
@@ -422,7 +422,7 @@ var Catacombs;
                 }
             });
         };
-        Gfx.prototype.moveSprite = function (sprite, fromX, fromY, toX, toY) {
+        Gfx.prototype.unregisterSpriteFromRoom = function (sprite, fromX, fromY) {
             var fromRoomSprites = this.roomSprites.getValue(fromX, fromY);
             // vytáhni sprite z pořadníku staré místnosti a sniž pořadí všech sprites, 
             // co byly v pořadí za ním (budou se posouvat na jeho místo)
@@ -430,10 +430,16 @@ var Catacombs;
             for (var i = sprite.roomPos; i < fromRoomSprites.length; i++) {
                 fromRoomSprites[i].roomPos--;
             }
+        };
+        Gfx.prototype.registerSpriteToRoom = function (sprite, toX, toY) {
             // zapiš sprite na konec pořadníku nové místnosti
             var toRoomSprites = this.roomSprites.getValue(toX, toY);
             sprite.roomPos = toRoomSprites.length;
             toRoomSprites.push(sprite);
+        };
+        Gfx.prototype.moveSprite = function (sprite, fromX, fromY, toX, toY) {
+            this.unregisterSpriteFromRoom(sprite, fromX, fromY);
+            this.registerSpriteToRoom(sprite, toX, toY);
             // překresli s animací sprites v místnostech
             this.drawRoomTokens(fromX, fromY);
             this.drawRoomTokens(toX, toY);
