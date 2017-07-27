@@ -19,6 +19,8 @@ namespace Catacombs {
         private monsterTokenById = new Array<RoomSprite>();
         private treasureTokenById = new Array<RoomSprite>();
 
+        private playerEquipment = new Array<PIXI.Container>();
+
         private mapCont = new PIXI.Container();
         private mapTokensCont = new PIXI.Container();
 
@@ -122,7 +124,10 @@ namespace Catacombs {
                 let buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - Gfx.UI_TOKEN_IMG_SIZE, 30, () => {
                     let activePlayer = self.controls.activePlayer;
                     if (!self.controls.activeKeeper) {
-
+                        let player = proc.players[activePlayer];
+                        if (player.treasure >= def.price && !player.inventory[def.name] && def.availableInstances >0) {
+                            player.buy(def);
+                        }
                     }
                 });
                 buyBtn.x = token.x + 10 + Gfx.UI_TOKEN_IMG_SIZE;
@@ -228,6 +233,12 @@ namespace Catacombs {
                     healthUI.addChild(sprite);
                     sprite.x = h * Gfx.UI_TOKEN_IMG_SIZE / 2
                 }
+
+                let equipmentUI = new PIXI.Container();
+                self.playerEquipment[player.id] = equipmentUI;
+                rmenu.addChild(equipmentUI);
+                equipmentUI.x = healthUI.x + healthUI.getBounds().width + 10;
+                equipmentUI.y = healthUI.y;
 
                 let invetoryUI = new PIXI.Container();
                 rmenu.addChild(invetoryUI);

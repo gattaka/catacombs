@@ -6,7 +6,7 @@ var Catacombs;
             this.proc = proc;
             this.rooms = new Catacombs.Array2D();
             this.noMonsterCases = 4;
-            this.noTreasureCases = 4;
+            this.noTreasureCases = 0;
             this.center = Math.floor(this.sideSize / 2);
             var def = RoomDef.startRoom();
             var room = new Room(def, this.center, this.center, def.exits, 0);

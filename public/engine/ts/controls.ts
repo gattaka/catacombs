@@ -43,7 +43,7 @@ namespace Catacombs {
                 }
             } else {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
-                if (this.activePlayer == 0 && Monster.monstersCount > 0) {
+                if (Monster.monstersCount > 0) {
                     this.activeKeeper = true;
                     EventBus.getInstance().fireEvent(new SimpleEventPayload(EventType.KEEPER_ACTIVATE));
                 } else {

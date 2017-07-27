@@ -18,7 +18,7 @@ namespace Catacombs {
     export class Equipment {
         public static equipmentCount = 0;
 
-        public static create(map: Map, mapx: number, mapy: number, def: EquipmentDef): Equipment {
+        public static create(def: EquipmentDef): Equipment {
             if (def.availableInstances == 0) {
                 alert("Nepodařilo se získat odměnu - nejsou volné karty!");
                 return null;
@@ -36,10 +36,10 @@ namespace Catacombs {
     }
 
     // položky
-    EquipmentDef.register("lantern", 5, 4);
-    EquipmentDef.register("pickaxe", 5, 2);
-    EquipmentDef.register("sword", 10, 4);
-    EquipmentDef.register("shield", 10, 2);
-    EquipmentDef.register("armor", 15, 3);
+    EquipmentDef.register("lantern", 4, 4);
+    EquipmentDef.register("pickaxe", 4, 2);
+    EquipmentDef.register("sword", 8, 4);
+    EquipmentDef.register("shield", 8, 2);
+    EquipmentDef.register("armor", 12, 3);
 
 }

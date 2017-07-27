@@ -28,6 +28,7 @@ var Catacombs;
             this.playerTokenById = new Array();
             this.monsterTokenById = new Array();
             this.treasureTokenById = new Array();
+            this.playerEquipment = new Array();
             this.mapCont = new PIXI.Container();
             this.mapTokensCont = new PIXI.Container();
             this.tweenBounces = new Array();
@@ -122,6 +123,10 @@ var Catacombs;
                 var buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - Gfx.UI_TOKEN_IMG_SIZE, 30, function () {
                     var activePlayer = self.controls.activePlayer;
                     if (!self.controls.activeKeeper) {
+                        var player = proc.players[activePlayer];
+                        if (player.treasure >= def.price && !player.inventory[def.name] && def.availableInstances > 0) {
+                            player.buy(def);
+                        }
                     }
                 });
                 buyBtn.x = token.x + 10 + Gfx.UI_TOKEN_IMG_SIZE;
@@ -216,6 +221,11 @@ var Catacombs;
                     healthUI.addChild(sprite);
                     sprite.x = h * Gfx.UI_TOKEN_IMG_SIZE / 2;
                 }
+                var equipmentUI = new PIXI.Container();
+                self.playerEquipment[player.id] = equipmentUI;
+                rmenu.addChild(equipmentUI);
+                equipmentUI.x = healthUI.x + healthUI.getBounds().width + 10;
+                equipmentUI.y = healthUI.y;
                 var invetoryUI = new PIXI.Container();
                 rmenu.addChild(invetoryUI);
                 invetoryUI.x = playerMenuIcon.x + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;

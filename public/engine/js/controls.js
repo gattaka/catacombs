@@ -41,7 +41,7 @@ var Catacombs;
             }
             else {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
-                if (this.activePlayer == 0 && Catacombs.Monster.monstersCount > 0) {
+                if (Catacombs.Monster.monstersCount > 0) {
                     this.activeKeeper = true;
                     Catacombs.EventBus.getInstance().fireEvent(new Catacombs.SimpleEventPayload(Catacombs.EventType.KEEPER_ACTIVATE));
                 }

@@ -57,10 +57,10 @@ namespace Catacombs {
     }
 
     // položky
-    TreasureDef.register("coin", "zlatou minci", 1, 15);
-    TreasureDef.register("cup", "zlatý pohár", 5, 10);
-    TreasureDef.register("gems", "drahokamy", 10, 5);
-    TreasureDef.register("amulet", "amulet", 15, 2);
+    TreasureDef.register("coin", "zlatou minci", 2, 15);
+    TreasureDef.register("cup", "zlatý pohár", 2, 10);
+    TreasureDef.register("gems", "drahokamy", 4, 5);
+    TreasureDef.register("amulet", "amulet", 4, 2);
     TreasureDef.register("blue_key", "modrý klíč", 0, 1, false);
     TreasureDef.register("red_key", "červený klíč", 0, 1, false);
     TreasureDef.register("green_key", "zelený klíč", 0, 1, false);

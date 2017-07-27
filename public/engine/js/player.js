@@ -64,11 +64,49 @@ var Catacombs;
                 var itemDef = item.def;
                 invItem = new InventoryItem(item.def.name);
                 this.inventory[item.def.name] = invItem;
+                this.treasure += itemDef.price;
             }
         };
         Player.prototype.useItem = function (key) {
             var item = this.inventory[key];
             item.amount--;
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
+        };
+        Player.prototype.buy = function (def) {
+            this.treasure -= def.price;
+            var toPay = def.price;
+            var item;
+            // postupně projdi cennosti od nejdražších
+            var types = ["amulet", "gems", "cup", "coin"];
+            for (var i = 0; i < types.length; i++) {
+                var t = types[i];
+                item = this.inventory[t];
+                // pokud hráč má v inventáři takovou cennost
+                if (!item) {
+                    var payPart = void 0;
+                    // může tímto typem zaplatit celou částku?
+                    if (item.def.price * item.amount >= toPay) {
+                        // ano, splacená část je celá zbylá cena
+                        payPart = toPay;
+                    }
+                    else {
+                        // ne, splacená část je všechno od této cenosti, co mám
+                        payPart = item.def.price * item.amount;
+                    }
+                    // sniž množství cennosti, dle toho, kolik se utratilo
+                    item.amount -= payPart / item.def.price;
+                    if (item.amount == 0) {
+                        delete this.inventory[t];
+                    }
+                    // sniž cenu, kterou ještě zbývá doplatit
+                    toPay -= payPart;
+                    if (toPay == 0)
+                        break;
+                }
+            }
+            this.inventory[def.name] = new InventoryItem(def.name, 1);
+            // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
+            Catacombs.Equipment.create(def);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
         };
         return Player;

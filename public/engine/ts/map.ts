@@ -6,7 +6,7 @@ namespace Catacombs {
         public center: number;
 
         public noMonsterCases = 4;
-        public noTreasureCases = 4;
+        public noTreasureCases = 0;
 
         constructor(public sideSize: number, private proc: Proc) {
             this.center = Math.floor(this.sideSize / 2);
