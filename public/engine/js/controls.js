@@ -5,6 +5,8 @@ var Catacombs;
             var _this = this;
             this.proc = proc;
             this.activeKeeper = false;
+            // kolik posunů jsem v tomto tahu udělal?
+            this.moves = 0;
             Catacombs.Keyboard.on(37, function () { _this.left(); });
             Catacombs.Keyboard.on(65, function () { _this.left(); });
             Catacombs.Keyboard.on(38, function () { _this.up(); });
@@ -19,16 +21,21 @@ var Catacombs;
         Controls.prototype.move = function (sideFrom, sideTo) {
             if (this.activeKeeper) {
                 if (this.activeMonster && this.proc.monsters[this.activeMonster].move(sideFrom, sideTo)) {
-                    this.next();
+                    this.moves++;
+                    if (this.moves > 1)
+                        this.next();
                 }
             }
             else {
                 if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
-                    this.next();
+                    this.moves++;
+                    if (this.moves > 1)
+                        this.next();
                 }
             }
         };
         Controls.prototype.next = function () {
+            this.moves = 0;
             if (this.activeKeeper) {
                 this.activeKeeper = false;
                 this.activeMonster = undefined;

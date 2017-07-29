@@ -1,8 +1,8 @@
 namespace Catacombs {
 
-    class InventoryItem {
+    class TreasureItem {
         constructor(
-            public name: string,
+            public def: TreasureDef,
             public amount = 1
         ) { }
     }
@@ -17,8 +17,9 @@ namespace Catacombs {
             return player;
         }
 
-        public treasure: number;
-        public inventory: { [name: string]: InventoryItem } = {};
+        public treasureValue = 0;
+        public treasure: { [type: string]: TreasureItem } = {};
+        public equipment: { [type: string]: EquipmentDef } = {};
 
         private constructor(map: Map, playerId: number) {
             super(map, playerId, map.center, map.center, true);
@@ -50,34 +51,34 @@ namespace Catacombs {
         }
 
         takeItem(item: Treasure) {
-            let invItem = this.inventory[item.def.name];
+            let invItem = this.treasure[TreasureType[item.def.type]];
             if (invItem) {
                 invItem.amount++;
             } else {
                 let itemDef = item.def;
-                invItem = new InventoryItem(item.def.name);
-                this.inventory[item.def.name] = invItem;
-                this.treasure += itemDef.price;
+                invItem = new TreasureItem(item.def);
+                this.treasure[TreasureType[item.def.type]] = invItem;
+                this.treasureValue += itemDef.price;
             }
         }
 
-        useItem(key: string) {
-            let item = this.inventory[key];
+        useItem(type: EquipmentType) {
+            let item = this.treasure[EquipmentType[type]];
             item.amount--;
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.id));
         }
 
         buy(def: EquipmentDef) {
-            this.treasure -= def.price;
+            this.treasureValue -= def.price;
             let toPay = def.price;
             let item;
             // postupně projdi cennosti od nejdražších
-            let types = ["amulet", "gems", "cup", "coin"];
+            let types = [TreasureType.AMULET, TreasureType.GEMS, TreasureType.CUP, TreasureType.COIN];
             for (let i = 0; i < types.length; i++) {
                 let t = types[i];
-                item = this.inventory[t];
+                item = this.treasure[TreasureType[t]];
                 // pokud hráč má v inventáři takovou cennost
-                if (!item) {
+                if (item) {
                     let payPart;
                     // může tímto typem zaplatit celou částku?
                     if (item.def.price * item.amount >= toPay) {
@@ -90,7 +91,7 @@ namespace Catacombs {
                     // sniž množství cennosti, dle toho, kolik se utratilo
                     item.amount -= payPart / item.def.price;
                     if (item.amount == 0) {
-                        delete this.inventory[t];
+                        delete this.treasure[TreasureType[t]];
                     }
                     // sniž cenu, kterou ještě zbývá doplatit
                     toPay -= payPart;
@@ -98,7 +99,7 @@ namespace Catacombs {
                         break;
                 }
             }
-            this.inventory[def.name] = new InventoryItem(def.name, 1);
+            this.equipment[EquipmentType[def.type]] = def;
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Equipment.create(def);
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.id));

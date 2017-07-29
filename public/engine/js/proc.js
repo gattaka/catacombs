@@ -14,6 +14,11 @@ var Catacombs;
                 this.players[player.id] = player;
             }
         }
+        Proc.prototype.killMonster = function (monster) {
+            delete this.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
+            delete this.monsters[monster.id];
+            Catacombs.Monster.monstersCount--;
+        };
         return Proc;
     }());
     Proc.PLAYERS_COUNT = 4;

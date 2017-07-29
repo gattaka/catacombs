@@ -63,7 +63,7 @@ namespace Catacombs {
                     this.initMonsterSprite(monster);
                 }
                 if (room.treasure && !room.treasure.def.canPick) {
-                    let sprite = new RoomSprite(room.treasure.def.name + '.png', roomSprites.length);
+                    let sprite = new RoomSprite(room.treasure.def.file + '.png', roomSprites.length);
                     this.treasureTokenById[room.treasure.id] = sprite;
                     roomSprites.push(sprite);
                 }
@@ -114,9 +114,9 @@ namespace Catacombs {
             let lmenuLastY = 0;
 
             // Obchod
-            Object.keys(EquipmentDef.defsByName).forEach((name, i) => {
-                let def = EquipmentDef.defsByName[name];
-                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '_token.png'));
+            Object.keys(EquipmentDef.defsByType).forEach((type, i) => {
+                let def = EquipmentDef.defsByType[type];
+                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + def.file + '.png'));
                 token.x = 10;
                 token.y = lmenuLastY + 10;
                 lmenuLastY = token.y + Gfx.UI_TOKEN_IMG_SIZE;
@@ -125,7 +125,7 @@ namespace Catacombs {
                     let activePlayer = self.controls.activePlayer;
                     if (!self.controls.activeKeeper) {
                         let player = proc.players[activePlayer];
-                        if (player.treasure >= def.price && !player.inventory[def.name] && def.availableInstances >0) {
+                        if (player.treasureValue >= def.price && !player.treasure[EquipmentType[def.type]] && def.availableInstances > 0) {
                             player.buy(def);
                         }
                     }
@@ -136,12 +136,12 @@ namespace Catacombs {
             });
 
             // Ceník
-            Object.keys(TreasureDef.defsByName).forEach((name, i) => {
-                let def = TreasureDef.defsByName[name];
+            Object.keys(TreasureDef.defsByType).forEach((type, i) => {
+                let def = TreasureDef.defsByType[type];
                 if (!def.canBuy)
                     return;
 
-                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + name + '.png'));
+                let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + def.file + '.png'));
                 token.x = 10;
                 token.y = lmenuLastY + 10;
                 lmenuLastY = token.y + Gfx.UI_TOKEN_IMG_SIZE;
@@ -212,16 +212,7 @@ namespace Catacombs {
                     if (i != p.payload)
                         return;
                     this.bounce([token, playerMenuIcon]);
-                    self.deactivateMonsterTokens();
-
-                    // Umožni útočit na netvory ve stejné místnosti
-                    let room = self.proc.map.rooms.getValue(player.mapx, player.mapy);
-                    room.monsters.forEach((monster) => {
-                        if (!monster)
-                            return;
-                        let monsterUI = self.monsterTokenById[monster.id];
-                        monsterUI.interactive = true;
-                    })
+                    this.enableMonstersToBeHit(player.mapx, player.mapy);
                 });
 
                 let healthUI = new PIXI.Container();
@@ -237,13 +228,13 @@ namespace Catacombs {
                 let equipmentUI = new PIXI.Container();
                 self.playerEquipment[player.id] = equipmentUI;
                 rmenu.addChild(equipmentUI);
-                equipmentUI.x = healthUI.x + healthUI.getBounds().width + 10;
+                equipmentUI.x = healthUI.x + (healthUI.getBounds().width) * 3 + 10;
                 equipmentUI.y = healthUI.y;
 
-                let invetoryUI = new PIXI.Container();
-                rmenu.addChild(invetoryUI);
-                invetoryUI.x = playerMenuIcon.x + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
-                invetoryUI.y = playerMenuIcon.y + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
+                let treasureUI = new PIXI.Container();
+                rmenu.addChild(treasureUI);
+                treasureUI.x = playerMenuIcon.x + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
+                treasureUI.y = playerMenuIcon.y + Gfx.UI_TOKEN_IMG_SIZE / 2 + 10;
 
                 token.on("mouseover", () => {
                     token.scale.set(1.5, 1.5);
@@ -273,6 +264,7 @@ namespace Catacombs {
                         token.texture = PIXI.Texture.fromImage('images/player' + i + '_tomb_token.png');
                         playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + i + '_tomb.png');
                     }
+                    self.controls.next();
                 });
 
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_MOVE, (p: PlayerMovePayload): boolean => {
@@ -280,13 +272,14 @@ namespace Catacombs {
                         return;
                     let sprite = self.playerTokenById[p.playerId];
                     self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
+                    self.enableMonstersToBeHit(p.toX, p.toY);
                     return false;
                 });
 
                 EventBus.getInstance().registerConsumer(EventType.ROOM_ITEM_OBTAINED, (p: RoomItemObtainedPayload): boolean => {
                     if (i != p.playerId)
                         return;
-                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + p.item.name + '.png'));
+                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + p.item.file + '.png'));
                     stage.addChild(sprite);
                     sprite.x = self.mapCont.x + Gfx.ROOM_IMG_SIZE * (p.room.mapx + 0.5);
                     sprite.y = self.mapCont.y + Gfx.ROOM_IMG_SIZE * (p.room.mapy + 0.5);
@@ -304,25 +297,37 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.INV_UPDATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
-                    invetoryUI.removeChildren();
+                    // Treasure inv
+                    treasureUI.removeChildren();
                     let lastX = 0;
-                    for (let key in player.inventory) {
-                        let item = player.inventory[key];
+                    for (let key in player.treasure) {
+                        let item = player.treasure[key];
                         if (item.amount <= 0)
                             continue;
-                        let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.name + '.png'));
-                        invetoryUI.addChild(sprite);
+                        let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.def.file + '.png'));
+                        treasureUI.addChild(sprite);
                         sprite.x = lastX;
                         sprite.y = 0;
                         if (item.amount > 1) {
                             let text = new PIXI.Text(item.amount + "x",
                                 { stroke: 0x0, strokeThickness: 4, fontFamily: Gfx.FONT, fontWeight: 'bold', fontSize: 24, fill: 0xd29e36 });
                             text.anchor.set(0, 1);
-                            invetoryUI.addChild(text);
+                            treasureUI.addChild(text);
                             text.x = lastX;
                             text.y = Gfx.UI_TOKEN_IMG_SIZE + 5; // TODO tohle by mělo vycházet i bez toho +5
                         }
                         lastX += Gfx.UI_TOKEN_IMG_SIZE * 0.75;
+                    }
+                    // Equipment inv
+                    equipmentUI.removeChildren();
+                    lastX = 0;
+                    for (let key in player.equipment) {
+                        let item = player.equipment[key];
+                        let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + item.file + '.png'));
+                        equipmentUI.addChild(sprite);
+                        sprite.x = lastX;
+                        sprite.y = 0;
+                        lastX += Gfx.UI_TOKEN_IMG_SIZE + 5;
                     }
                 });
             });
@@ -334,6 +339,7 @@ namespace Catacombs {
                 self.deactivatePlayerTokens();
                 let sprite = self.monsterTokenById[p.monsterId];
                 self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
+                self.enablePlayersToBeHit(p.toX, p.toY);
                 return false;
             });
 
@@ -389,35 +395,22 @@ namespace Catacombs {
         }
 
         private initMonsterSprite(monster: Monster) {
-            let sprite = this.monsterTokenById[monster.id];
+            let sprite = this.monsterTokenById[monster.id]
             let onClick = () => {
                 if (this.controls.activeKeeper) {
-                    // vybírám netvora v tahu keepera
-                    this.controls.activeMonster = monster.id;
-                    this.bounceStop();
-                    this.bounce([sprite]);
-                    this.deactivateMonsterTokens();
-
-                    // Umožni útočit na živé hráče ve stejné místnosti
-                    let room = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
-                    room.players.forEach((player) => {
-                        if (player.health == 0)
-                            return;
-                        let playerUI = this.playerTokenById[player.id];
-                        playerUI.interactive = true;
-                    })
+                    this.chooseMonster(monster, sprite);
                 } else {
-                    // útočím na netvora v tahu hráče
-                    sprite.parent.removeChild(sprite);
-                    this.unregisterSpriteFromRoom(sprite, monster.mapx, monster.mapy);
-                    delete this.monsterTokenById[monster.id];
-                    delete this.proc.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
-                    delete this.proc.monsters[monster.id];
-                    this.drawRoomTokens(monster.mapx, monster.mapy);
-                    this.deactivateMonsterTokens();
+                    this.hitMonster(monster, sprite);
                 }
             };
             sprite.on('click', onClick);
+            sprite.on("mouseover", () => {
+                sprite.scale.set(1.5, 1.5);
+            });
+            sprite.on("mouseout", () => {
+                sprite.scale.set(1, 1);
+            });
+            sprite.buttonMode = true;
         }
 
         private createBtn(caption: string, color: number, width: number, height: number, onClick: Function): PIXI.Container {
@@ -491,11 +484,60 @@ namespace Catacombs {
                 monster.scale.set(1, 1);
             });
         }
+
         private deactivatePlayerTokens() {
             this.playerTokenById.forEach((player) => {
                 player.interactive = false;
                 player.scale.set(1, 1);
             });
+        }
+
+        private chooseMonster(monster: Monster, sprite: RoomSprite) {
+            // vybírám netvora v tahu keepera
+            this.controls.activeMonster = monster.id;
+            this.bounceStop();
+            this.bounce([sprite]);
+            this.deactivateMonsterTokens();
+            this.enablePlayersToBeHit(monster.mapx, monster.mapy);
+        }
+
+        private hitMonster(monster: Monster, sprite: RoomSprite) {
+            // útočím na netvora v tahu hráče
+            sprite.parent.removeChild(sprite);
+            this.unregisterSpriteFromRoom(sprite, monster.mapx, monster.mapy);
+            this.killMonster(monster);
+            this.drawRoomTokens(monster.mapx, monster.mapy);
+            this.deactivateMonsterTokens();
+            this.controls.next();
+        }
+
+        private enablePlayersToBeHit(mapx: number, mapy: number) {
+            // Umožni útočit na živé hráče ve stejné místnosti
+            this.deactivatePlayerTokens();
+            let room = this.proc.map.rooms.getValue(mapx, mapy);
+            room.players.forEach((player) => {
+                if (player.health == 0)
+                    return;
+                let playerUI = this.playerTokenById[player.id];
+                playerUI.interactive = true;
+            });
+        }
+
+        private enableMonstersToBeHit(mapx: number, mapy: number) {
+            // Umožni útočit na netvory ve stejné místnosti
+            this.deactivateMonsterTokens();
+            let room = this.proc.map.rooms.getValue(mapx, mapy);
+            room.monsters.forEach((monster) => {
+                if (!monster)
+                    return;
+                let monsterUI = this.monsterTokenById[monster.id];
+                monsterUI.interactive = true;
+            });
+        }
+
+        private killMonster(monster: Monster) {
+            delete this.monsterTokenById[monster.id];
+            this.proc.killMonster(monster);
         }
     }
 }

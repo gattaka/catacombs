@@ -89,3 +89,5 @@ Obecné
 	Meč			n/a				+1
 	Štít		+1				n/a
 	Zbroj		+1				n/a
+
+- mód hry, kdy by se zombie nedaly zabít, ale jenom se jim utnul tah (oživovali by se)

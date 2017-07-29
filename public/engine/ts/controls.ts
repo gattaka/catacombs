@@ -5,6 +5,9 @@ namespace Catacombs {
         public activeMonster: number;
         public activeKeeper = false;
 
+        // kolik posunů jsem v tomto tahu udělal?
+        moves = 0;
+
         constructor(private proc: Proc) {
 
             Keyboard.on(37, () => { this.left(); });
@@ -23,16 +26,21 @@ namespace Catacombs {
         move(sideFrom: number, sideTo: number) {
             if (this.activeKeeper) {
                 if (this.activeMonster && this.proc.monsters[this.activeMonster].move(sideFrom, sideTo)) {
-                    this.next();
+                    this.moves++;
+                    if (this.moves > 1)
+                        this.next();
                 }
             } else {
                 if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
-                    this.next();
+                    this.moves++;
+                    if (this.moves > 1)
+                        this.next();
                 }
             }
         }
 
         next() {
+            this.moves = 0;
             if (this.activeKeeper) {
                 this.activeKeeper = false;
                 this.activeMonster = undefined;

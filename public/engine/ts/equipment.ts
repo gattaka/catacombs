@@ -2,14 +2,14 @@ namespace Catacombs {
 
     export class EquipmentDef {
         public static totalAvailableInstances = 0;
-        public static defsByName: { [name: string]: EquipmentDef } = {};
+        public static defsByType: { [name: string]: EquipmentDef } = {};
         private static defsByOrder = [];
-        public static register(name: string, price: number, availableInstances: number) {
-            EquipmentDef.defsByName[name] = new EquipmentDef(name, price, availableInstances);
-            EquipmentDef.defsByOrder.push(EquipmentDef.defsByName[name]);
+        public static register(type: EquipmentType, file: string, price: number, availableInstances: number) {
+            EquipmentDef.defsByType[EquipmentType[type]] = new EquipmentDef(type, file, price, availableInstances);
+            EquipmentDef.defsByOrder.push(EquipmentDef.defsByType[EquipmentType[type]]);
         }
 
-        private constructor(public name: string, public price: number, public availableInstances: number) {
+        private constructor(public type: EquipmentType, public file: string, public price: number, public availableInstances: number) {
             EquipmentDef.totalAvailableInstances += availableInstances;
         }
 
@@ -35,11 +35,15 @@ namespace Catacombs {
         ) { }
     }
 
+    export enum EquipmentType {
+        LANTERN, PICKAXE, SWORD, SHIELD, ARMOR
+    }
+
     // položky
-    EquipmentDef.register("lantern", 4, 4);
-    EquipmentDef.register("pickaxe", 4, 2);
-    EquipmentDef.register("sword", 8, 4);
-    EquipmentDef.register("shield", 8, 2);
-    EquipmentDef.register("armor", 12, 3);
+    EquipmentDef.register(EquipmentType.LANTERN, "lantern_token", 4, 4);
+    EquipmentDef.register(EquipmentType.PICKAXE, "pickaxe_token", 4, 2);
+    EquipmentDef.register(EquipmentType.SWORD, "sword_token", 8, 4);
+    EquipmentDef.register(EquipmentType.SHIELD, "shield_token", 8, 2);
+    EquipmentDef.register(EquipmentType.ARMOR, "armor_token", 12, 3);
 
 }

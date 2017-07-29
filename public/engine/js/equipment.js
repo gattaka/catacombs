@@ -1,20 +1,21 @@
 var Catacombs;
 (function (Catacombs) {
     var EquipmentDef = (function () {
-        function EquipmentDef(name, price, availableInstances) {
-            this.name = name;
+        function EquipmentDef(type, file, price, availableInstances) {
+            this.type = type;
+            this.file = file;
             this.price = price;
             this.availableInstances = availableInstances;
             EquipmentDef.totalAvailableInstances += availableInstances;
         }
-        EquipmentDef.register = function (name, price, availableInstances) {
-            EquipmentDef.defsByName[name] = new EquipmentDef(name, price, availableInstances);
-            EquipmentDef.defsByOrder.push(EquipmentDef.defsByName[name]);
+        EquipmentDef.register = function (type, file, price, availableInstances) {
+            EquipmentDef.defsByType[EquipmentType[type]] = new EquipmentDef(type, file, price, availableInstances);
+            EquipmentDef.defsByOrder.push(EquipmentDef.defsByType[EquipmentType[type]]);
         };
         return EquipmentDef;
     }());
     EquipmentDef.totalAvailableInstances = 0;
-    EquipmentDef.defsByName = {};
+    EquipmentDef.defsByType = {};
     EquipmentDef.defsByOrder = [];
     Catacombs.EquipmentDef = EquipmentDef;
     var Equipment = (function () {
@@ -37,10 +38,18 @@ var Catacombs;
     }());
     Equipment.equipmentCount = 0;
     Catacombs.Equipment = Equipment;
+    var EquipmentType;
+    (function (EquipmentType) {
+        EquipmentType[EquipmentType["LANTERN"] = 0] = "LANTERN";
+        EquipmentType[EquipmentType["PICKAXE"] = 1] = "PICKAXE";
+        EquipmentType[EquipmentType["SWORD"] = 2] = "SWORD";
+        EquipmentType[EquipmentType["SHIELD"] = 3] = "SHIELD";
+        EquipmentType[EquipmentType["ARMOR"] = 4] = "ARMOR";
+    })(EquipmentType = Catacombs.EquipmentType || (Catacombs.EquipmentType = {}));
     // položky
-    EquipmentDef.register("lantern", 4, 4);
-    EquipmentDef.register("pickaxe", 4, 2);
-    EquipmentDef.register("sword", 8, 4);
-    EquipmentDef.register("shield", 8, 2);
-    EquipmentDef.register("armor", 12, 3);
+    EquipmentDef.register(EquipmentType.LANTERN, "lantern_token", 4, 4);
+    EquipmentDef.register(EquipmentType.PICKAXE, "pickaxe_token", 4, 2);
+    EquipmentDef.register(EquipmentType.SWORD, "sword_token", 8, 4);
+    EquipmentDef.register(EquipmentType.SHIELD, "shield_token", 8, 2);
+    EquipmentDef.register(EquipmentType.ARMOR, "armor_token", 12, 3);
 })(Catacombs || (Catacombs = {}));

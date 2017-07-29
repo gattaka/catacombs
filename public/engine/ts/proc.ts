@@ -9,7 +9,6 @@ namespace Catacombs {
         public monsters = new Array<Monster>();
 
         constructor() {
-
             // Mapa
             this.map = new Map(9, this);
 
@@ -19,7 +18,12 @@ namespace Catacombs {
                 let player = Player.create(this.map);
                 this.players[player.id] = player;
             }
+        }
 
+        public killMonster(monster: Monster) {
+            delete this.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
+            delete this.monsters[monster.id];
+            Monster.monstersCount--;
         }
     }
 }
