@@ -8,7 +8,8 @@ namespace Catacombs {
         ROOM_ITEM_OBTAINED,
         PLAYER_ACTIVATE,
         KEEPER_ACTIVATE,
-        LOG
+        LOG,
+        KEEPER_WON
     }
 
     abstract class EventPayload {

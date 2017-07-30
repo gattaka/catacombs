@@ -22,7 +22,9 @@ var Catacombs;
         __extends(Player, _super);
         function Player(map, playerId) {
             var _this = _super.call(this, map, playerId, map.center, map.center, true) || this;
-            _this.treasureValue = 0;
+            _this.treasureSum = 0;
+            _this.attack = 1;
+            _this.defense = 0;
             _this.treasure = {};
             _this.equipment = {};
             _this.health = 3;
@@ -66,7 +68,7 @@ var Catacombs;
                 var itemDef = item.def;
                 invItem = new TreasureItem(item.def);
                 this.treasure[Catacombs.TreasureType[item.def.type]] = invItem;
-                this.treasureValue += itemDef.price;
+                this.treasureSum += itemDef.price;
             }
         };
         Player.prototype.useItem = function (type) {
@@ -75,7 +77,7 @@ var Catacombs;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
         };
         Player.prototype.buy = function (def) {
-            this.treasureValue -= def.price;
+            this.treasureSum -= def.price;
             var toPay = def.price;
             var item;
             // postupně projdi cennosti od nejdražších
@@ -107,6 +109,17 @@ var Catacombs;
                 }
             }
             this.equipment[Catacombs.EquipmentType[def.type]] = def;
+            switch (def.type) {
+                case Catacombs.EquipmentType.ARMOR:
+                    this.defense++;
+                    break;
+                case Catacombs.EquipmentType.SHIELD:
+                    this.defense++;
+                    break;
+                case Catacombs.EquipmentType.SWORD:
+                    this.attack = 2;
+                    break;
+            }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Catacombs.Equipment.create(def);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));

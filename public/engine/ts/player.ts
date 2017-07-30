@@ -17,7 +17,9 @@ namespace Catacombs {
             return player;
         }
 
-        public treasureValue = 0;
+        public treasureSum = 0;
+        public attack = 1;
+        public defense = 0;
         public treasure: { [type: string]: TreasureItem } = {};
         public equipment: { [type: string]: EquipmentDef } = {};
 
@@ -58,7 +60,7 @@ namespace Catacombs {
                 let itemDef = item.def;
                 invItem = new TreasureItem(item.def);
                 this.treasure[TreasureType[item.def.type]] = invItem;
-                this.treasureValue += itemDef.price;
+                this.treasureSum += itemDef.price;
             }
         }
 
@@ -69,7 +71,7 @@ namespace Catacombs {
         }
 
         buy(def: EquipmentDef) {
-            this.treasureValue -= def.price;
+            this.treasureSum -= def.price;
             let toPay = def.price;
             let item;
             // postupně projdi cennosti od nejdražších
@@ -100,6 +102,17 @@ namespace Catacombs {
                 }
             }
             this.equipment[EquipmentType[def.type]] = def;
+            switch (def.type) {
+                case EquipmentType.ARMOR:
+                    this.defense++;
+                    break;
+                case EquipmentType.SHIELD:
+                    this.defense++;
+                    break;
+                case EquipmentType.SWORD:
+                    this.attack = 2;
+                    break;
+            }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Equipment.create(def);
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.id));

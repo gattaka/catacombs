@@ -3,11 +3,11 @@ namespace Catacombs {
     export class MonsterDef {
         public static totalAvailableInstances = 0;
         public static monsterDefs = new Array<MonsterDef>();
-        public static register(name: string, tier: number, attack: number, defense: number, availableInstances: number) {
-            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(name, tier, attack, defense, availableInstances);
+        public static register(type: MosterType, file: string, tier: number, defense: number, attack: number, availableInstances: number) {
+            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, attack, availableInstances);
         }
 
-        private constructor(public name: string, public tier: number, public attack: number, public defense: number, public availableInstances: number) {
+        private constructor(public type: MosterType, public file: string, public tier: number, public defense: number, public attack: number, public availableInstances: number) {
             MonsterDef.totalAvailableInstances += availableInstances;
         }
     }
@@ -57,11 +57,15 @@ namespace Catacombs {
         }
     }
 
+    export enum MosterType {
+        ZOMBIE, SKELETON, SWAMPER, TROLL, MINOTAUR
+    }
+
     // netvoři
-    MonsterDef.register("zombie", 1, 1, 0, 5);
-    MonsterDef.register("skeleton", 2, 1, 1, 3);
-    MonsterDef.register("swamper", 3, 2, 2, 2);
-    MonsterDef.register("troll", 4, 3, 3, 1);
-    MonsterDef.register("minotaur", 5, 4, 4, 1);
+    MonsterDef.register(MosterType.ZOMBIE, "zombie", 1, 0, 1, 5);
+    MonsterDef.register(MosterType.SKELETON, "skeleton", 2, 1, 1, 3);
+    MonsterDef.register(MosterType.SWAMPER, "swamper", 3, 1, 2, 2);
+    MonsterDef.register(MosterType.TROLL, "troll", 4, 2, 2, 1);
+    MonsterDef.register(MosterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
 
 }

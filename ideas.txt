@@ -76,18 +76,20 @@ Obecné
 - každý netvor má sílu, která udává, jak hodně zbroje musí hráč mít, aby neutrpěl zranění
 - obdobně má každý netvor houževnatost, která udává, kolik hráčů najednou nebo zbraň musí na něj být, aby padl
 
-	Netvor		Houževnatost	Síla	Komentář
-	---------------------------------------------
-	Zombie		1				1		Jeden hráč bez vybavení jí může zničit
-	Kostlivec	2				1		Dva hráči bez vybavení nebo jeden s +1 silou ho může zničit
-	Žabouch		2				2		Dokáže prorazit štít nebo zbroj (neumí oboje najednou)
-	Trol		3				2		Lze skolit pouze třemi hráči nebo dvěma, kdy jeden má vybavení
-	Minotaur	3				3
+	Netvor		Obrana			Síla	Speciální vlastnost
+	-----------------------------------------------------------------------------------------------------------------------------------
+	Zombie		0				1		Nejslabší, ale nedá se trvale zniči -- keeper ji může kdykoliv oživit
+	Kostlivec	1				1		Dva hráči bez vybavení nebo jeden s +1 silou ho může zničit
+	Žabouch		1				2		Dokáže prorazit štít nebo zbroj (neumí oboje najednou)
+	Trol		2				2		Lze skolit pouze třemi hráči nebo dvěma, kdy jeden má vybavení
+	Minotaur	2				3		Umí proběhnout neomezenou řadou místností za sebou v jednou směru
 
 	Věc			Houževnatost	Síla
-	-----------------------------------------
+	-----------------------------------------------------------------------------------------------------------------------------------
 	Meč			n/a				+1
 	Štít		+1				n/a
 	Zbroj		+1				n/a
 
 - mód hry, kdy by se zombie nedaly zabít, ale jenom se jim utnul tah (oživovali by se)
+- zombie by se mohla dát oživit prostě jako tah keepera
+- default má hráč dva tahy: pohyb + útok/druhý-pohyb, když si ale koupí zbroj, měl by pouze jeden tah: útok/pohyb

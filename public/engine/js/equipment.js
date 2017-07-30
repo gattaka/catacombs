@@ -41,14 +41,15 @@ var Catacombs;
     var EquipmentType;
     (function (EquipmentType) {
         EquipmentType[EquipmentType["LANTERN"] = 0] = "LANTERN";
-        EquipmentType[EquipmentType["PICKAXE"] = 1] = "PICKAXE";
-        EquipmentType[EquipmentType["SWORD"] = 2] = "SWORD";
-        EquipmentType[EquipmentType["SHIELD"] = 3] = "SHIELD";
-        EquipmentType[EquipmentType["ARMOR"] = 4] = "ARMOR";
+        EquipmentType[EquipmentType["LOCKPICKS"] = 1] = "LOCKPICKS";
+        EquipmentType[EquipmentType["PICKAXE"] = 2] = "PICKAXE";
+        EquipmentType[EquipmentType["SWORD"] = 3] = "SWORD";
+        EquipmentType[EquipmentType["SHIELD"] = 4] = "SHIELD";
+        EquipmentType[EquipmentType["ARMOR"] = 5] = "ARMOR";
     })(EquipmentType = Catacombs.EquipmentType || (Catacombs.EquipmentType = {}));
     // položky
     EquipmentDef.register(EquipmentType.LANTERN, "lantern_token", 4, 4);
-    EquipmentDef.register(EquipmentType.PICKAXE, "pickaxe_token", 4, 2);
+    EquipmentDef.register(EquipmentType.LOCKPICKS, "lockpicks_token", 4, 2);
     EquipmentDef.register(EquipmentType.SWORD, "sword_token", 8, 4);
     EquipmentDef.register(EquipmentType.SHIELD, "shield_token", 8, 2);
     EquipmentDef.register(EquipmentType.ARMOR, "armor_token", 12, 3);

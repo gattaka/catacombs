@@ -26,9 +26,9 @@ namespace Catacombs {
         move(sideFrom: number, sideTo: number) {
             if (this.activeKeeper) {
                 if (this.activeMonster && this.proc.monsters[this.activeMonster].move(sideFrom, sideTo)) {
-                    this.moves++;
-                    if (this.moves > 1)
-                        this.next();
+                    // this.moves++;
+                    // if (this.moves > 1)
+                    this.next();
                 }
             } else {
                 if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
@@ -44,11 +44,17 @@ namespace Catacombs {
             if (this.activeKeeper) {
                 this.activeKeeper = false;
                 this.activeMonster = undefined;
-                if (this.proc.players[this.activePlayer].health > 0) {
-                    EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
-                } else {
-                    this.next();
+                // Vyzkoušej všechny hráče, pro případ, že by některý z nich byl mrtví
+                for (let i = 0; i < this.proc.players.length; i++) {
+                    if (this.proc.players[this.activePlayer].health > 0) {
+                        EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+                        return;
+                    } else {
+                        this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
+                    }
                 }
+                // všichni hráči jsou mrtví...
+                EventBus.getInstance().fireEvent(new SimpleEventPayload(EventType.KEEPER_WON));
             } else {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
                 if (Monster.monstersCount > 0) {
@@ -59,6 +65,7 @@ namespace Catacombs {
                         EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
                     } else {
                         this.next();
+                        return;
                     }
                 }
             }
