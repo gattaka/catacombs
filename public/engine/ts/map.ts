@@ -30,10 +30,6 @@ namespace Catacombs {
             }
             let room = new Room(roomDef, mapx, mapy, exits, rotation);
 
-            // obsah místnosti
-            let rnd = Math.floor(Math.random() * (MonsterDef.totalAvailableInstances + TreasureDef.totalAvailableInstances));
-            let limit = MonsterDef.totalAvailableInstances;
-
             if (Math.random() * (MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
@@ -49,12 +45,8 @@ namespace Catacombs {
             }
 
             if (Math.random() * (TreasureDef.totalAvailableInstances + this.noTreasureCases) > this.noTreasureCases) {
-                limit += TreasureDef.totalAvailableInstances;
-                if (rnd < limit) {
-                    let treasure = Treasure.createRandom(this, mapx, mapy);
-                    room.treasure = treasure;
-                    this.proc.treasures.push(treasure);
-                }
+                let treasure = Treasure.createRandom(this, mapx, mapy);
+                room.treasure = treasure;
             } else {
                 this.noTreasureCases--;
             }
@@ -63,6 +55,29 @@ namespace Catacombs {
             EventBus.getInstance().fireEvent(new TupleEventPayload(EventType.ROOM_DISCOVERED, mapx, mapy));
 
             return room;
+        }
+
+        public canTravel(movement: Movement, ignoreBars: boolean, canReveal: boolean): boolean {
+            let fromRoom = this.proc.map.rooms.getValue(movement.fromX, movement.fromY);
+
+            // je možné tímto směrem odejít z počáteční místnosti?
+            if (!(movement.sideFrom & fromRoom.rotatedExits)) {
+                return false;
+            }
+            // je cílová místnost v mezích mapy?
+            if (movement.toX < 0 || movement.toX > this.proc.map.sideSize || movement.toY < 0 || movement.toY > this.proc.map.sideSize)
+                return;
+            // existuje cílová místnost?
+            let toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
+            if (toRoom) {
+                // je možné tímto směrem vejít do cílové místnosti?
+                if (!(movement.sideTo & toRoom.rotatedExits)) {
+                    return false;
+                }
+            } else {
+                // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
+                return canReveal;
+            }
         }
     }
 
@@ -74,6 +89,17 @@ namespace Catacombs {
             def.availableInstances--;
             RoomDef.totalAvailableInstances--;
         }
+    }
+
+    export class Movement {
+        constructor(
+            public sideFrom: number,
+            public sideTo: number,
+            public fromX: number,
+            public fromY: number,
+            public toX: number,
+            public toY: number
+        ) { }
     }
 
     export class RoomDef {

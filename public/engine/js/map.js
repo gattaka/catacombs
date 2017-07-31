@@ -26,9 +26,6 @@ var Catacombs;
                 exits = Catacombs.Utils.scr(exits);
             }
             var room = new Room(roomDef, mapx, mapy, exits, rotation);
-            // obsah místnosti
-            var rnd = Math.floor(Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + Catacombs.TreasureDef.totalAvailableInstances));
-            var limit = Catacombs.MonsterDef.totalAvailableInstances;
             if (Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
@@ -44,12 +41,8 @@ var Catacombs;
                 this.noMonsterCases--;
             }
             if (Math.random() * (Catacombs.TreasureDef.totalAvailableInstances + this.noTreasureCases) > this.noTreasureCases) {
-                limit += Catacombs.TreasureDef.totalAvailableInstances;
-                if (rnd < limit) {
-                    var treasure = Catacombs.Treasure.createRandom(this, mapx, mapy);
-                    room.treasure = treasure;
-                    this.proc.treasures.push(treasure);
-                }
+                var treasure = Catacombs.Treasure.createRandom(this, mapx, mapy);
+                room.treasure = treasure;
             }
             else {
                 this.noTreasureCases--;
@@ -57,6 +50,28 @@ var Catacombs;
             this.rooms.setValue(mapx, mapy, room);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.TupleEventPayload(Catacombs.EventType.ROOM_DISCOVERED, mapx, mapy));
             return room;
+        };
+        Map.prototype.canTravel = function (movement, ignoreBars, canReveal) {
+            var fromRoom = this.proc.map.rooms.getValue(movement.fromX, movement.fromY);
+            // je možné tímto směrem odejít z počáteční místnosti?
+            if (!(movement.sideFrom & fromRoom.rotatedExits)) {
+                return false;
+            }
+            // je cílová místnost v mezích mapy?
+            if (movement.toX < 0 || movement.toX > this.proc.map.sideSize || movement.toY < 0 || movement.toY > this.proc.map.sideSize)
+                return;
+            // existuje cílová místnost?
+            var toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
+            if (toRoom) {
+                // je možné tímto směrem vejít do cílové místnosti?
+                if (!(movement.sideTo & toRoom.rotatedExits)) {
+                    return false;
+                }
+            }
+            else {
+                // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
+                return canReveal;
+            }
         };
         return Map;
     }());
@@ -76,6 +91,18 @@ var Catacombs;
         return Room;
     }());
     Catacombs.Room = Room;
+    var Movement = (function () {
+        function Movement(sideFrom, sideTo, fromX, fromY, toX, toY) {
+            this.sideFrom = sideFrom;
+            this.sideTo = sideTo;
+            this.fromX = fromX;
+            this.fromY = fromY;
+            this.toX = toX;
+            this.toY = toY;
+        }
+        return Movement;
+    }());
+    Catacombs.Movement = Movement;
     var RoomDef = (function () {
         function RoomDef(tex, type, exits, availableInstances) {
             this.tex = tex;

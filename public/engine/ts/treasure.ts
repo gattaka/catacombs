@@ -3,21 +3,20 @@ namespace Catacombs {
     export class TreasureDef {
         public static totalAvailableInstances = 0;
         public static defsByType: { [type: string]: TreasureDef } = {};
-        private static defsByOrder = [];
+        public static defsPool = [];
         public static register(type: TreasureType, file: string, caption: string, price: number, availableInstances: number, canBuy = true, canPick = true) {
-            TreasureDef.defsByType[TreasureType[type]] = new TreasureDef(type, file, caption, price, availableInstances, canBuy, canPick);
-            TreasureDef.defsByOrder.push(TreasureDef.defsByType[TreasureType[type]]);
+            let def = new TreasureDef(type, file, caption, price, availableInstances, canBuy, canPick);
+            TreasureDef.defsByType[TreasureType[type]] = def;
+            for (let i = 0; i < availableInstances; i++) {
+                TreasureDef.defsPool.push(def);
+            }
         }
 
         public static getRandom(): TreasureDef {
-            let m = Math.floor(Math.random() * TreasureDef.defsByOrder.length);
-            for (let i = 0; i < TreasureDef.defsByOrder.length; i++) {
-                let def = TreasureDef.defsByOrder[m];
-                if (def.availableInstances > 0)
-                    return TreasureDef.defsByOrder[m];
-                m = (m + 1) % TreasureDef.defsByOrder.length;
-            }
-            return null;
+            let m = Math.floor(Math.random() * TreasureDef.defsPool.length);
+            let def = TreasureDef.defsPool[m];
+            TreasureDef.defsPool.splice(m, 1);
+            return def;
         }
 
         private constructor(public type: TreasureType, public file: string, public caption: string, public price: number, public availableInstances: number, public canBuy: boolean, public canPick: boolean) {

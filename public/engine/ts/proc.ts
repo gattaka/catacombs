@@ -5,7 +5,6 @@ namespace Catacombs {
 
         public map: Map;
         public players = new Array<Player>();
-        public treasures = new Array<Treasure>();
         public monsters = new Array<Monster>();
 
         constructor() {

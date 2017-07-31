@@ -73,6 +73,11 @@ var Catacombs;
         Array2D.prototype.getPlainArray = function () {
             return this.array;
         };
+        Array2D.prototype.forEach = function (fn) {
+            this.array.forEach(function (subarray) {
+                subarray.forEach(fn);
+            });
+        };
         Array2D.prototype.getValue = function (x, y) {
             var row = this.array[y];
             if (typeof row === "undefined" || row[x] == null) {

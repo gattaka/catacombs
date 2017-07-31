@@ -2,32 +2,22 @@ var Catacombs;
 (function (Catacombs) {
     var Controls = (function () {
         function Controls(proc) {
-            var _this = this;
             this.proc = proc;
             this.activeKeeper = false;
             // kolik posunů jsem v tomto tahu udělal?
             this.moves = 0;
-            Catacombs.Keyboard.on(37, function () { _this.left(); });
-            Catacombs.Keyboard.on(65, function () { _this.left(); });
-            Catacombs.Keyboard.on(38, function () { _this.up(); });
-            Catacombs.Keyboard.on(87, function () { _this.up(); });
-            Catacombs.Keyboard.on(39, function () { _this.right(); });
-            Catacombs.Keyboard.on(68, function () { _this.right(); });
-            Catacombs.Keyboard.on(40, function () { _this.down(); });
-            Catacombs.Keyboard.on(83, function () { _this.down(); });
-            Catacombs.Keyboard.on(32, function () { _this.next(); });
             this.activePlayer = 0;
         }
-        Controls.prototype.move = function (sideFrom, sideTo) {
+        Controls.prototype.move = function (movement) {
             if (this.activeKeeper) {
-                if (this.activeMonster && this.proc.monsters[this.activeMonster].move(sideFrom, sideTo)) {
+                if (this.activeMonster && this.proc.monsters[this.activeMonster].move(movement)) {
                     // this.moves++;
                     // if (this.moves > 1)
                     this.next();
                 }
             }
             else {
-                if (this.proc.players[this.activePlayer].move(sideFrom, sideTo)) {
+                if (this.proc.players[this.activePlayer].move(movement)) {
                     this.moves++;
                     if (this.moves > 1)
                         this.next();
@@ -69,10 +59,6 @@ var Catacombs;
                 }
             }
         };
-        Controls.prototype.up = function () { this.move(8, 2); };
-        Controls.prototype.down = function () { this.move(2, 8); };
-        Controls.prototype.left = function () { this.move(1, 4); };
-        Controls.prototype.right = function () { this.move(4, 1); };
         return Controls;
     }());
     Catacombs.Controls = Controls;

@@ -13,7 +13,11 @@ namespace Catacombs {
         private static UI_TOKEN_IMG_SIZE = 60;
         private static FONT = 'Tahoma';
 
+        // Sprites v místnosti (monstra, hráči, truhly)
         private roomSprites = new Array2D<Array<RoomSprite>>();
+
+        // Sprite/Pozadí samotné místnosti
+        private roomCellSprites = new Array2D<PIXI.Container>();
 
         private playerRoomSpriteById = new Array<RoomSprite>();
         private monsterRoomSpriteById = new Array<RoomSprite>();
@@ -74,23 +78,24 @@ namespace Catacombs {
 
             for (let mapy = 0; mapy < proc.map.sideSize; mapy++) {
                 for (let mapx = 0; mapx < proc.map.sideSize; mapx++) {
-                    let x = mapy * Gfx.ROOM_IMG_SIZE;
-                    let y = mapx * Gfx.ROOM_IMG_SIZE;
+                    let x = mapx * Gfx.ROOM_IMG_SIZE;
+                    let y = mapy * Gfx.ROOM_IMG_SIZE;
+                    let cont = new PIXI.Container();
+                    cont.x = x;
+                    cont.y = y;
                     if (mapx == proc.map.center && mapy == proc.map.center) {
                         let room = proc.map.rooms.getValue(mapx, mapy);
                         let sprite = new PIXI.Sprite(room.def.tex);
-                        sprite.x = x;
-                        sprite.y = y;
-                        self.mapCont.addChild(sprite);
+                        cont.addChild(sprite);
                     } else {
                         let shape = new PIXI.Graphics();
                         shape.beginFill(0x222222);
                         shape.lineStyle(1, 0x000000);
                         shape.drawRect(1, 1, Gfx.ROOM_IMG_SIZE - 2, Gfx.ROOM_IMG_SIZE - 2);
-                        self.mapCont.addChild(shape);
-                        shape.x = x;
-                        shape.y = y;
+                        cont.addChild(shape);
                     }
+                    self.roomCellSprites.setValue(mapx, mapy, cont);
+                    self.mapCont.addChild(cont);
                 }
             }
 
@@ -215,6 +220,8 @@ namespace Catacombs {
                     this.bounce([playerRoomSprite, playerMenuIcon]);
                     this.enableMonstersToBeHit(player.mapx, player.mapy);
                     this.removeMonsterChooseMarks();
+                    // TODO pokud má hráč lockpicks, může procházet mřížemi
+                    this.enableRoomsForTravel(player.mapx, player.mapy, false, true);
                 });
 
                 let healthUI = new PIXI.Container();
@@ -255,6 +262,8 @@ namespace Catacombs {
                     let sprite = self.playerRoomSpriteById[p.playerId];
                     self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                     self.enableMonstersToBeHit(p.toX, p.toY);
+                    // TODO pokud má hráč lockpicks, může procházet mřížemi
+                    self.enableRoomsForTravel(p.toX, p.toY, false, true);
                     return false;
                 });
 
@@ -318,10 +327,12 @@ namespace Catacombs {
             self.drawRoomTokens(mapCenter, mapCenter);
 
             EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
-                self.deactivatePlayerTokens();
+                self.deactivatePlayerRoomSprites();
                 let sprite = self.monsterRoomSpriteById[p.monsterId];
                 self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                 self.enablePlayersToBeHit(p.toX, p.toY);
+                // netvoři nemohou prcházet mřížemi a nemohou objevovat místnosti
+                self.enableRoomsForTravel(p.toX, p.toY, false, false);
                 return false;
             });
 
@@ -354,7 +365,7 @@ namespace Catacombs {
                     this.monsterChooseMarks.push(text);
                 });
                 this.bounce(toBounce);
-                this.deactivatePlayerTokens();
+                this.deactivatePlayerRoomSprites();
                 return false;
             });
 
@@ -468,17 +479,66 @@ namespace Catacombs {
             this.drawRoomTokens(toX, toY);
         }
 
-        private deactivateMonsterTokens() {
+        private deactivateMonsterRoomSprites() {
             this.monsterRoomSpriteById.forEach((monster) => {
                 monster.interactive = false;
                 monster.scale.set(1, 1);
             });
         }
 
-        private deactivatePlayerTokens() {
+        private deactivatePlayerRoomSprites() {
             this.playerRoomSpriteById.forEach((player) => {
                 player.interactive = false;
                 player.scale.set(1, 1);
+            });
+        }
+
+        private deactivateRooms() {
+            this.roomCellSprites.forEach((cont: PIXI.Container) => {
+                if (cont.children.length > 1)
+                    cont.removeChildAt(1);
+            });
+        }
+
+        private enableRoomsForTravel(mapx: number, mapy: number, ignoreBars: boolean, canExplore: boolean) {
+            this.deactivateRooms();
+
+            // TODO podmínka dostupnosti (zeď, mříž bez paklíče...)?
+            // x, y, fromMask, toMask
+            let directions = [
+                [-1, 0, 0b0001, 0b0100],
+                [1, 0, 0b0100, 0b0001],
+                [0, -1, 0b1000, 0b0010],
+                [0, 1, 0b0010, 0b1000]
+            ];
+            directions.forEach((direction) => {
+                let movement = new Movement(direction[2], direction[3], mapx, mapy, mapx + direction[0], mapy + direction[1]);
+                let roomCellSprite = this.roomCellSprites.getValue(movement.toX, movement.toY);
+
+                if (!this.proc.map.canTravel(movement, ignoreBars, canExplore))
+                    return;
+                let shape = new PIXI.Graphics();
+                let drawBorder = (color) => {
+                    shape.clear();
+                    shape.beginFill(color, 0.2);
+                    shape.drawRect(0, 0, Gfx.ROOM_IMG_SIZE, Gfx.ROOM_IMG_SIZE);
+                }
+                let drawDefaultBorder = () => {
+                    drawBorder(0x11aa00);
+                }
+                drawDefaultBorder();
+                roomCellSprite.addChild(shape);
+                roomCellSprite.interactive = true;
+                roomCellSprite.buttonMode = true;
+                roomCellSprite.on("mouseover", () => {
+                    drawBorder(0xaabb00);
+                });
+                roomCellSprite.on("mouseout", () => {
+                    drawDefaultBorder();
+                });
+                roomCellSprite.on("click", () => {
+                    this.controls.move(movement);
+                });
             });
         }
 
@@ -487,9 +547,11 @@ namespace Catacombs {
             this.controls.activeMonster = monster.id;
             this.bounceStop();
             this.bounce([sprite]);
-            this.deactivateMonsterTokens();
+            this.deactivateMonsterRoomSprites();
             this.enablePlayersToBeHit(monster.mapx, monster.mapy);
             this.removeMonsterChooseMarks();
+            // netvoři nemohou prcházet mřížemi a nemohou objevovat místnosti
+            this.enableRoomsForTravel(monster.mapx, monster.mapy, false, false);
         }
 
         private removeMonsterChooseMarks() {
@@ -501,7 +563,7 @@ namespace Catacombs {
 
         private enableMonstersToBeHit(mapx: number, mapy: number) {
             // Umožni útočit na netvory ve stejné místnosti
-            this.deactivateMonsterTokens();
+            this.deactivateMonsterRoomSprites();
             let room = this.proc.map.rooms.getValue(mapx, mapy);
             room.monsters.forEach((monster) => {
                 if (!monster)
@@ -527,21 +589,21 @@ namespace Catacombs {
             })
 
             if (deployedAttack > monster.def.defense) {
-                monsterRoomSprite.parent.removeChild(monsterRoomSprite);
+                this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
                 this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
                 this.drawRoomTokens(monster.mapx, monster.mapy);
-                this.deactivateMonsterTokens();
+                this.deactivateMonsterRoomSprites();
                 delete this.monsterRoomSpriteById[monster.id];
                 this.proc.killMonster(monster);
                 this.controls.next();
             } else {
-                this.animateFadeText("NEÚČINNÉ", monsterRoomSprite.x, monsterRoomSprite.y);
+                this.createFadeText("NEÚČINNÉ", monsterRoomSprite.x, monsterRoomSprite.y);
             }
         }
 
         private enablePlayersToBeHit(mapx: number, mapy: number) {
             // Umožni útočit na živé hráče ve stejné místnosti
-            this.deactivatePlayerTokens();
+            this.deactivatePlayerRoomSprites();
             let room = this.proc.map.rooms.getValue(mapx, mapy);
             room.players.forEach((player) => {
                 if (player.health == 0)
@@ -554,8 +616,8 @@ namespace Catacombs {
         private hitPlayer(player: Player, playerRoomSprite: RoomSprite, healthUI: PIXI.Container, playerMenuIcon: PIXI.Sprite) {
             let currentMonster = this.proc.monsters[this.controls.activeMonster];
             if (currentMonster.def.attack > player.defense) {
-                this.animateFadeSprite('images/life_token.png', playerRoomSprite.x, playerRoomSprite.y);
-                this.deactivatePlayerTokens();
+                this.createFadeSprite('images/life_token.png', playerRoomSprite.x, playerRoomSprite.y);
+                this.deactivatePlayerRoomSprites();
                 player.health--;
                 healthUI.removeChildAt(healthUI.children.length - 1);
                 if (player.health == 0) {
@@ -564,30 +626,36 @@ namespace Catacombs {
                 }
                 this.controls.next();
             } else {
-                this.animateFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
+                this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
             }
         }
 
-        private animateFadeText(message: string, x: number, y: number) {
+        private createFadeText(message: string, x: number, y: number) {
             let text = new PIXI.Text(message, { fontFamily: Gfx.FONT, fontSize: 25 + "px", fill: 0xffffff });
-            this.animateObject(text, x, y);
+            this.createFadeAwayObject(text, x, y);
+            this.mapCont.addChild(text);
         }
 
-        private animateFadeSprite(spriteName: string, x: number, y: number) {
+        private createFadeSprite(spriteName: string, x: number, y: number) {
             let sprite = new PIXI.Sprite(PIXI.Texture.fromImage(spriteName));
-            this.animateObject(sprite, x, y);
+            this.createFadeAwayObject(sprite, x, y);
+            this.mapCont.addChild(sprite);
         }
 
-        private animateObject(obj: PIXI.Sprite, x: number, y: number) {
+        private createFadeAwayObject(obj: PIXI.Sprite, x: number, y: number) {
             let self = this;
-            self.mapCont.addChild(obj);
             obj.x = x;
-            obj.y = y;
+            obj.y = y - Gfx.MAP_TOKEN_IMG_SIZE;
             obj.anchor.set(0.5, 0.5);
+            this.animateObjectFadeAway(obj, x, obj.y);
+        }
+
+        private animateObjectFadeAway(obj: PIXI.Sprite, x: number, y: number) {
+            let self = this;
             createjs.Tween.get(obj).to({
                 y: y - 50
-            }, 500).call(() => {
-                self.mapCont.removeChild(obj);
+            }, 800).call(() => {
+                obj.parent.removeChild(obj);
             });
             createjs.Tween.get(obj).wait(300).to({
                 alpha: 0

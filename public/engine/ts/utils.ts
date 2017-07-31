@@ -77,6 +77,12 @@ namespace Catacombs {
         constructor(public width = 0, public height = 0) {
         }
 
+        forEach(fn: (T) => any) {
+            this.array.forEach((subarray: Array<T>) => {
+                subarray.forEach(fn);
+            });
+        }
+
         getValue(x: number, y: number): T {
             var row = this.array[y];
             if (typeof row === "undefined" || row[x] == null) {

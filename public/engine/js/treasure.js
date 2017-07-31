@@ -24,24 +24,23 @@ var Catacombs;
         TreasureDef.register = function (type, file, caption, price, availableInstances, canBuy, canPick) {
             if (canBuy === void 0) { canBuy = true; }
             if (canPick === void 0) { canPick = true; }
-            TreasureDef.defsByType[TreasureType[type]] = new TreasureDef(type, file, caption, price, availableInstances, canBuy, canPick);
-            TreasureDef.defsByOrder.push(TreasureDef.defsByType[TreasureType[type]]);
+            var def = new TreasureDef(type, file, caption, price, availableInstances, canBuy, canPick);
+            TreasureDef.defsByType[TreasureType[type]] = def;
+            for (var i = 0; i < availableInstances; i++) {
+                TreasureDef.defsPool.push(def);
+            }
         };
         TreasureDef.getRandom = function () {
-            var m = Math.floor(Math.random() * TreasureDef.defsByOrder.length);
-            for (var i = 0; i < TreasureDef.defsByOrder.length; i++) {
-                var def = TreasureDef.defsByOrder[m];
-                if (def.availableInstances > 0)
-                    return TreasureDef.defsByOrder[m];
-                m = (m + 1) % TreasureDef.defsByOrder.length;
-            }
-            return null;
+            var m = Math.floor(Math.random() * TreasureDef.defsPool.length);
+            var def = TreasureDef.defsPool[m];
+            TreasureDef.defsPool.splice(m, 1);
+            return def;
         };
         return TreasureDef;
     }());
     TreasureDef.totalAvailableInstances = 0;
     TreasureDef.defsByType = {};
-    TreasureDef.defsByOrder = [];
+    TreasureDef.defsPool = [];
     Catacombs.TreasureDef = TreasureDef;
     var Treasure = (function (_super) {
         __extends(Treasure, _super);
