@@ -17,7 +17,7 @@ namespace Catacombs {
         private roomSprites = new Array2D<Array<RoomSprite>>();
 
         // Sprite/Pozadí samotné místnosti
-        private roomCellSprites = new Array2D<PIXI.Container>();
+        private roomCellContainers = new Array2D<PIXI.Container>();
 
         private playerRoomSpriteById = new Array<RoomSprite>();
         private monsterRoomSpriteById = new Array<RoomSprite>();
@@ -43,11 +43,16 @@ namespace Catacombs {
             self.mapCont.y = self.mapTokensCont.y = stage.fixedHeight / 2 - self.mapCont.fixedHeight / 2;
 
             EventBus.getInstance().registerConsumer(EventType.ROOM_REVEALED, (p: TupleEventPayload): boolean => {
+                // odstraň shape/gfx s předchozí blank-room -- sice není vidět, ale je na ní 
+                // stále clicklister, který dělá nepořádek v možnostech pohybu postav 
+                let oldCont = self.roomCellContainers.getValue(p.x, p.y);
+                if (oldCont) oldCont.parent.removeChild(oldCont);
+
                 let cont = new PIXI.Container();
                 cont.x = Gfx.ROOM_IMG_SIZE * p.x;
                 cont.y = Gfx.ROOM_IMG_SIZE * p.y;
                 self.mapCont.addChild(cont);
-                self.roomCellSprites.setValue(p.x, p.y, cont);
+                self.roomCellContainers.setValue(p.x, p.y, cont);
 
                 let room = proc.map.rooms.getValue(p.x, p.y);
                 let sprite = new PIXI.Sprite(room.def.tex);
@@ -100,7 +105,7 @@ namespace Catacombs {
                         shape.drawRect(1, 1, Gfx.ROOM_IMG_SIZE - 2, Gfx.ROOM_IMG_SIZE - 2);
                         cont.addChild(shape);
                     }
-                    self.roomCellSprites.setValue(mapx, mapy, cont);
+                    self.roomCellContainers.setValue(mapx, mapy, cont);
                     self.mapCont.addChild(cont);
                 }
             }
@@ -501,11 +506,10 @@ namespace Catacombs {
         }
 
         private deactivateRooms() {
-            this.roomCellSprites.forEach((cont: PIXI.Container) => {
-                if (cont.children.length > 1)
+            this.roomCellContainers.forEach((cont: PIXI.Container) => {
+                if (cont.children.length > 1) {
                     cont.removeChildAt(1);
-                cont.interactive = false;
-                cont.buttonMode = false;
+                }
             });
         }
 
@@ -519,7 +523,7 @@ namespace Catacombs {
             ];
             directions.forEach((direction) => {
                 let movement = new Movement(direction[2], direction[3], mapx, mapy, mapx + direction[0], mapy + direction[1]);
-                let roomCellSprite = this.roomCellSprites.getValue(movement.toX, movement.toY);
+                let roomCellContainer = this.roomCellContainers.getValue(movement.toX, movement.toY);
 
                 if (!this.proc.map.canTravel(movement, ignoreBars, canExplore))
                     return;
@@ -533,7 +537,7 @@ namespace Catacombs {
                     drawFill(0x11aa00);
                 }
                 drawDefaultFill();
-                roomCellSprite.addChild(shape);
+                roomCellContainer.addChild(shape);
                 shape.interactive = true;
                 shape.buttonMode = true;
                 shape.on("mouseover", () => {
@@ -590,7 +594,7 @@ namespace Catacombs {
             // a k tom útokem všech hráčů v místnosti, kde je netvor, na kterého útočím
             let monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
             monsterRoom.players.forEach((p) => {
-                if (p != currentPlayer)
+                if (p != currentPlayer && p.health > 0)
                     deployedAttack += p.attack;
             })
 

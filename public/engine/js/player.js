@@ -27,7 +27,7 @@ var Catacombs;
             _this.defense = 0;
             _this.treasure = {};
             _this.equipment = {};
-            _this.health = 3;
+            _this.health = 4;
             _this.map.rooms.getValue(_this.mapx, _this.mapy).players[_this.id] = _this;
             return _this;
         }
@@ -61,15 +61,15 @@ var Catacombs;
         };
         Player.prototype.takeItem = function (item) {
             var invItem = this.treasure[Catacombs.TreasureType[item.def.type]];
+            var itemDef = item.def;
             if (invItem) {
                 invItem.amount++;
             }
             else {
-                var itemDef = item.def;
                 invItem = new TreasureItem(item.def);
                 this.treasure[Catacombs.TreasureType[item.def.type]] = invItem;
-                this.treasureSum += itemDef.price;
             }
+            this.treasureSum += itemDef.price;
         };
         Player.prototype.useItem = function (type) {
             var item = this.treasure[Catacombs.EquipmentType[type]];
@@ -77,6 +77,9 @@ var Catacombs;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
         };
         Player.prototype.buy = function (def) {
+            // už tohle vybavení má
+            if (this.equipment[Catacombs.EquipmentType[def.type]])
+                return;
             this.treasureSum -= def.price;
             var toPay = def.price;
             var item;

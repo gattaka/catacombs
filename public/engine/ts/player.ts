@@ -25,7 +25,7 @@ namespace Catacombs {
 
         private constructor(map: Map, playerId: number) {
             super(map, playerId, map.center, map.center, true);
-            this.health = 3;
+            this.health = 4;
             this.map.rooms.getValue(this.mapx, this.mapy).players[this.id] = this;
         }
 
@@ -54,14 +54,14 @@ namespace Catacombs {
 
         takeItem(item: Treasure) {
             let invItem = this.treasure[TreasureType[item.def.type]];
+            let itemDef = item.def;
             if (invItem) {
                 invItem.amount++;
             } else {
-                let itemDef = item.def;
                 invItem = new TreasureItem(item.def);
                 this.treasure[TreasureType[item.def.type]] = invItem;
-                this.treasureSum += itemDef.price;
             }
+            this.treasureSum += itemDef.price;
         }
 
         useItem(type: EquipmentType) {
@@ -71,6 +71,9 @@ namespace Catacombs {
         }
 
         buy(def: EquipmentDef) {
+            // už tohle vybavení má
+            if (this.equipment[EquipmentType[def.type]])
+                return;
             this.treasureSum -= def.price;
             let toPay = def.price;
             let item;

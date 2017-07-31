@@ -27,7 +27,7 @@ var Catacombs;
             // Sprites v místnosti (monstra, hráči, truhly)
             this.roomSprites = new Catacombs.Array2D();
             // Sprite/Pozadí samotné místnosti
-            this.roomCellSprites = new Catacombs.Array2D();
+            this.roomCellContainers = new Catacombs.Array2D();
             this.playerRoomSpriteById = new Array();
             this.monsterRoomSpriteById = new Array();
             this.treasureRoomSpriteById = new Array();
@@ -45,11 +45,16 @@ var Catacombs;
             self.mapCont.x = self.mapTokensCont.x = stage.fixedWidth / 2 - self.mapCont.fixedWidth / 2;
             self.mapCont.y = self.mapTokensCont.y = stage.fixedHeight / 2 - self.mapCont.fixedHeight / 2;
             Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_REVEALED, function (p) {
+                // odstraň shape/gfx s předchozí blank-room -- sice není vidět, ale je na ní 
+                // stále clicklister, který dělá nepořádek v možnostech pohybu postav 
+                var oldCont = self.roomCellContainers.getValue(p.x, p.y);
+                if (oldCont)
+                    oldCont.parent.removeChild(oldCont);
                 var cont = new PIXI.Container();
                 cont.x = Gfx.ROOM_IMG_SIZE * p.x;
                 cont.y = Gfx.ROOM_IMG_SIZE * p.y;
                 self.mapCont.addChild(cont);
-                self.roomCellSprites.setValue(p.x, p.y, cont);
+                self.roomCellContainers.setValue(p.x, p.y, cont);
                 var room = proc.map.rooms.getValue(p.x, p.y);
                 var sprite = new PIXI.Sprite(room.def.tex);
                 sprite.anchor.set(0.5);
@@ -100,7 +105,7 @@ var Catacombs;
                         shape.drawRect(1, 1, Gfx.ROOM_IMG_SIZE - 2, Gfx.ROOM_IMG_SIZE - 2);
                         cont.addChild(shape);
                     }
-                    self.roomCellSprites.setValue(mapx, mapy, cont);
+                    self.roomCellContainers.setValue(mapx, mapy, cont);
                     self.mapCont.addChild(cont);
                 }
             }
@@ -468,11 +473,10 @@ var Catacombs;
             });
         };
         Gfx.prototype.deactivateRooms = function () {
-            this.roomCellSprites.forEach(function (cont) {
-                if (cont.children.length > 1)
+            this.roomCellContainers.forEach(function (cont) {
+                if (cont.children.length > 1) {
                     cont.removeChildAt(1);
-                cont.interactive = false;
-                cont.buttonMode = false;
+                }
             });
         };
         Gfx.prototype.enableRoomsForTravel = function (mapx, mapy, ignoreBars, canExplore) {
@@ -486,7 +490,7 @@ var Catacombs;
             ];
             directions.forEach(function (direction) {
                 var movement = new Catacombs.Movement(direction[2], direction[3], mapx, mapy, mapx + direction[0], mapy + direction[1]);
-                var roomCellSprite = _this.roomCellSprites.getValue(movement.toX, movement.toY);
+                var roomCellContainer = _this.roomCellContainers.getValue(movement.toX, movement.toY);
                 if (!_this.proc.map.canTravel(movement, ignoreBars, canExplore))
                     return;
                 var shape = new PIXI.Graphics();
@@ -499,7 +503,7 @@ var Catacombs;
                     drawFill(0x11aa00);
                 };
                 drawDefaultFill();
-                roomCellSprite.addChild(shape);
+                roomCellContainer.addChild(shape);
                 shape.interactive = true;
                 shape.buttonMode = true;
                 shape.on("mouseover", function () {
@@ -553,7 +557,7 @@ var Catacombs;
             // a k tom útokem všech hráčů v místnosti, kde je netvor, na kterého útočím
             var monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
             monsterRoom.players.forEach(function (p) {
-                if (p != currentPlayer)
+                if (p != currentPlayer && p.health > 0)
                     deployedAttack += p.attack;
             });
             if (deployedAttack > monster.def.defense) {
