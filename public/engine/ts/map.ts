@@ -52,7 +52,7 @@ namespace Catacombs {
             }
 
             this.rooms.setValue(mapx, mapy, room);
-            EventBus.getInstance().fireEvent(new TupleEventPayload(EventType.ROOM_DISCOVERED, mapx, mapy));
+            EventBus.getInstance().fireEvent(new TupleEventPayload(EventType.ROOM_REVEALED, mapx, mapy));
 
             return room;
         }
@@ -66,14 +66,15 @@ namespace Catacombs {
             }
             // je cílová místnost v mezích mapy?
             if (movement.toX < 0 || movement.toX > this.proc.map.sideSize || movement.toY < 0 || movement.toY > this.proc.map.sideSize)
-                return;
+                return false;
             // existuje cílová místnost?
             let toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
             if (toRoom) {
                 // je možné tímto směrem vejít do cílové místnosti?
                 if (!(movement.sideTo & toRoom.rotatedExits)) {
                     return false;
-                }
+                } else
+                    return true;
             } else {
                 // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
                 return canReveal;

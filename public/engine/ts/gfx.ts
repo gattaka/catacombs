@@ -42,14 +42,20 @@ namespace Catacombs {
             self.mapCont.x = self.mapTokensCont.x = stage.fixedWidth / 2 - self.mapCont.fixedWidth / 2;
             self.mapCont.y = self.mapTokensCont.y = stage.fixedHeight / 2 - self.mapCont.fixedHeight / 2;
 
-            EventBus.getInstance().registerConsumer(EventType.ROOM_DISCOVERED, (p: TupleEventPayload): boolean => {
+            EventBus.getInstance().registerConsumer(EventType.ROOM_REVEALED, (p: TupleEventPayload): boolean => {
+                let cont = new PIXI.Container();
+                cont.x = Gfx.ROOM_IMG_SIZE * p.x;
+                cont.y = Gfx.ROOM_IMG_SIZE * p.y;
+                self.mapCont.addChild(cont);
+                self.roomCellSprites.setValue(p.x, p.y, cont);
+
                 let room = proc.map.rooms.getValue(p.x, p.y);
                 let sprite = new PIXI.Sprite(room.def.tex);
                 sprite.anchor.set(0.5);
                 sprite.rotation = room.rotation;
-                sprite.x = Gfx.ROOM_IMG_SIZE * (p.x + 0.5);
-                sprite.y = Gfx.ROOM_IMG_SIZE * (p.y + 0.5)
-                self.mapCont.addChild(sprite);
+                sprite.x = Gfx.ROOM_IMG_SIZE * 0.5;
+                sprite.y = Gfx.ROOM_IMG_SIZE * 0.5;
+                cont.addChild(sprite);
 
                 sprite.alpha = 0;
                 createjs.Tween.get(sprite)
@@ -363,6 +369,7 @@ namespace Catacombs {
                     text.y = sprite.y - Gfx.MAP_TOKEN_IMG_SIZE;
                     toBounce.push(text);
                     this.monsterChooseMarks.push(text);
+                    this.deactivateRooms();
                 });
                 this.bounce(toBounce);
                 this.deactivatePlayerRoomSprites();
@@ -497,14 +504,13 @@ namespace Catacombs {
             this.roomCellSprites.forEach((cont: PIXI.Container) => {
                 if (cont.children.length > 1)
                     cont.removeChildAt(1);
+                cont.interactive = false;
+                cont.buttonMode = false;
             });
         }
 
         private enableRoomsForTravel(mapx: number, mapy: number, ignoreBars: boolean, canExplore: boolean) {
             this.deactivateRooms();
-
-            // TODO podmínka dostupnosti (zeď, mříž bez paklíče...)?
-            // x, y, fromMask, toMask
             let directions = [
                 [-1, 0, 0b0001, 0b0100],
                 [1, 0, 0b0100, 0b0001],
@@ -518,25 +524,25 @@ namespace Catacombs {
                 if (!this.proc.map.canTravel(movement, ignoreBars, canExplore))
                     return;
                 let shape = new PIXI.Graphics();
-                let drawBorder = (color) => {
+                let drawFill = (color) => {
                     shape.clear();
                     shape.beginFill(color, 0.2);
                     shape.drawRect(0, 0, Gfx.ROOM_IMG_SIZE, Gfx.ROOM_IMG_SIZE);
                 }
-                let drawDefaultBorder = () => {
-                    drawBorder(0x11aa00);
+                let drawDefaultFill = () => {
+                    drawFill(0x11aa00);
                 }
-                drawDefaultBorder();
+                drawDefaultFill();
                 roomCellSprite.addChild(shape);
-                roomCellSprite.interactive = true;
-                roomCellSprite.buttonMode = true;
-                roomCellSprite.on("mouseover", () => {
-                    drawBorder(0xaabb00);
+                shape.interactive = true;
+                shape.buttonMode = true;
+                shape.on("mouseover", () => {
+                    drawFill(0xaabb00);
                 });
-                roomCellSprite.on("mouseout", () => {
-                    drawDefaultBorder();
+                shape.on("mouseout", () => {
+                    drawDefaultFill();
                 });
-                roomCellSprite.on("click", () => {
+                shape.on("click", () => {
                     this.controls.move(movement);
                 });
             });
@@ -550,7 +556,7 @@ namespace Catacombs {
             this.deactivateMonsterRoomSprites();
             this.enablePlayersToBeHit(monster.mapx, monster.mapy);
             this.removeMonsterChooseMarks();
-            // netvoři nemohou prcházet mřížemi a nemohou objevovat místnosti
+            // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
             this.enableRoomsForTravel(monster.mapx, monster.mapy, false, false);
         }
 

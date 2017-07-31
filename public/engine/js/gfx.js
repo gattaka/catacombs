@@ -44,14 +44,19 @@ var Catacombs;
             self.mapCont.fixedHeight = self.mapTokensCont.fixedHeight = Gfx.ROOM_IMG_SIZE * proc.map.sideSize;
             self.mapCont.x = self.mapTokensCont.x = stage.fixedWidth / 2 - self.mapCont.fixedWidth / 2;
             self.mapCont.y = self.mapTokensCont.y = stage.fixedHeight / 2 - self.mapCont.fixedHeight / 2;
-            Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_DISCOVERED, function (p) {
+            Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_REVEALED, function (p) {
+                var cont = new PIXI.Container();
+                cont.x = Gfx.ROOM_IMG_SIZE * p.x;
+                cont.y = Gfx.ROOM_IMG_SIZE * p.y;
+                self.mapCont.addChild(cont);
+                self.roomCellSprites.setValue(p.x, p.y, cont);
                 var room = proc.map.rooms.getValue(p.x, p.y);
                 var sprite = new PIXI.Sprite(room.def.tex);
                 sprite.anchor.set(0.5);
                 sprite.rotation = room.rotation;
-                sprite.x = Gfx.ROOM_IMG_SIZE * (p.x + 0.5);
-                sprite.y = Gfx.ROOM_IMG_SIZE * (p.y + 0.5);
-                self.mapCont.addChild(sprite);
+                sprite.x = Gfx.ROOM_IMG_SIZE * 0.5;
+                sprite.y = Gfx.ROOM_IMG_SIZE * 0.5;
+                cont.addChild(sprite);
                 sprite.alpha = 0;
                 createjs.Tween.get(sprite)
                     .to({
@@ -339,6 +344,7 @@ var Catacombs;
                     text.y = sprite.y - Gfx.MAP_TOKEN_IMG_SIZE;
                     toBounce.push(text);
                     _this.monsterChooseMarks.push(text);
+                    _this.deactivateRooms();
                 });
                 _this.bounce(toBounce);
                 _this.deactivatePlayerRoomSprites();
@@ -465,13 +471,13 @@ var Catacombs;
             this.roomCellSprites.forEach(function (cont) {
                 if (cont.children.length > 1)
                     cont.removeChildAt(1);
+                cont.interactive = false;
+                cont.buttonMode = false;
             });
         };
         Gfx.prototype.enableRoomsForTravel = function (mapx, mapy, ignoreBars, canExplore) {
             var _this = this;
             this.deactivateRooms();
-            // TODO podmínka dostupnosti (zeď, mříž bez paklíče...)?
-            // x, y, fromMask, toMask
             var directions = [
                 [-1, 0, 1, 4],
                 [1, 0, 4, 1],
@@ -484,25 +490,25 @@ var Catacombs;
                 if (!_this.proc.map.canTravel(movement, ignoreBars, canExplore))
                     return;
                 var shape = new PIXI.Graphics();
-                var drawBorder = function (color) {
+                var drawFill = function (color) {
                     shape.clear();
                     shape.beginFill(color, 0.2);
                     shape.drawRect(0, 0, Gfx.ROOM_IMG_SIZE, Gfx.ROOM_IMG_SIZE);
                 };
-                var drawDefaultBorder = function () {
-                    drawBorder(0x11aa00);
+                var drawDefaultFill = function () {
+                    drawFill(0x11aa00);
                 };
-                drawDefaultBorder();
+                drawDefaultFill();
                 roomCellSprite.addChild(shape);
-                roomCellSprite.interactive = true;
-                roomCellSprite.buttonMode = true;
-                roomCellSprite.on("mouseover", function () {
-                    drawBorder(0xaabb00);
+                shape.interactive = true;
+                shape.buttonMode = true;
+                shape.on("mouseover", function () {
+                    drawFill(0xaabb00);
                 });
-                roomCellSprite.on("mouseout", function () {
-                    drawDefaultBorder();
+                shape.on("mouseout", function () {
+                    drawDefaultFill();
                 });
-                roomCellSprite.on("click", function () {
+                shape.on("click", function () {
                     _this.controls.move(movement);
                 });
             });
@@ -515,7 +521,7 @@ var Catacombs;
             this.deactivateMonsterRoomSprites();
             this.enablePlayersToBeHit(monster.mapx, monster.mapy);
             this.removeMonsterChooseMarks();
-            // netvoři nemohou prcházet mřížemi a nemohou objevovat místnosti
+            // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
             this.enableRoomsForTravel(monster.mapx, monster.mapy, false, false);
         };
         Gfx.prototype.removeMonsterChooseMarks = function () {

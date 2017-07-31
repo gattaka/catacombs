@@ -3,7 +3,7 @@ namespace Catacombs {
     export enum EventType {
         PLAYER_MOVE,
         MONSTER_MOVE,
-        ROOM_DISCOVERED,
+        ROOM_REVEALED,
         INV_UPDATE,
         ROOM_ITEM_OBTAINED,
         PLAYER_ACTIVATE,
