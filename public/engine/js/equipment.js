@@ -1,6 +1,6 @@
 var Catacombs;
 (function (Catacombs) {
-    var EquipmentDef = (function () {
+    var EquipmentDef = /** @class */ (function () {
         function EquipmentDef(type, file, price, availableInstances) {
             this.type = type;
             this.file = file;
@@ -12,13 +12,13 @@ var Catacombs;
             EquipmentDef.defsByType[EquipmentType[type]] = new EquipmentDef(type, file, price, availableInstances);
             EquipmentDef.defsByOrder.push(EquipmentDef.defsByType[EquipmentType[type]]);
         };
+        EquipmentDef.totalAvailableInstances = 0;
+        EquipmentDef.defsByType = {};
+        EquipmentDef.defsByOrder = [];
         return EquipmentDef;
     }());
-    EquipmentDef.totalAvailableInstances = 0;
-    EquipmentDef.defsByType = {};
-    EquipmentDef.defsByOrder = [];
     Catacombs.EquipmentDef = EquipmentDef;
-    var Equipment = (function () {
+    var Equipment = /** @class */ (function () {
         function Equipment(def) {
             this.def = def;
         }
@@ -34,9 +34,9 @@ var Catacombs;
             }
             return new Equipment(def);
         };
+        Equipment.equipmentCount = 0;
         return Equipment;
     }());
-    Equipment.equipmentCount = 0;
     Catacombs.Equipment = Equipment;
     var EquipmentType;
     (function (EquipmentType) {

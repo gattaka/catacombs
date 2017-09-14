@@ -1,6 +1,6 @@
 var Catacombs;
 (function (Catacombs) {
-    var Proc = (function () {
+    var Proc = /** @class */ (function () {
         function Proc() {
             this.players = new Array();
             this.monsters = new Array();
@@ -18,8 +18,8 @@ var Catacombs;
             delete this.monsters[monster.id];
             Catacombs.Monster.monstersCount--;
         };
+        Proc.PLAYERS_COUNT = 4;
         return Proc;
     }());
-    Proc.PLAYERS_COUNT = 4;
     Catacombs.Proc = Proc;
 })(Catacombs || (Catacombs = {}));

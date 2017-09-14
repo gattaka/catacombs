@@ -22,13 +22,13 @@ var Catacombs;
         EventType[EventType["LOG"] = 7] = "LOG";
         EventType[EventType["KEEPER_WON"] = 8] = "KEEPER_WON";
     })(EventType = Catacombs.EventType || (Catacombs.EventType = {}));
-    var EventPayload = (function () {
+    var EventPayload = /** @class */ (function () {
         function EventPayload(type) {
             this.type = type;
         }
         return EventPayload;
     }());
-    var SimpleEventPayload = (function (_super) {
+    var SimpleEventPayload = /** @class */ (function (_super) {
         __extends(SimpleEventPayload, _super);
         function SimpleEventPayload(type) {
             return _super.call(this, type) || this;
@@ -36,7 +36,7 @@ var Catacombs;
         return SimpleEventPayload;
     }(EventPayload));
     Catacombs.SimpleEventPayload = SimpleEventPayload;
-    var StringEventPayload = (function (_super) {
+    var StringEventPayload = /** @class */ (function (_super) {
         __extends(StringEventPayload, _super);
         function StringEventPayload(type, payload) {
             var _this = _super.call(this, type) || this;
@@ -46,7 +46,7 @@ var Catacombs;
         return StringEventPayload;
     }(EventPayload));
     Catacombs.StringEventPayload = StringEventPayload;
-    var NumberEventPayload = (function (_super) {
+    var NumberEventPayload = /** @class */ (function (_super) {
         __extends(NumberEventPayload, _super);
         function NumberEventPayload(type, payload) {
             var _this = _super.call(this, type) || this;
@@ -56,7 +56,7 @@ var Catacombs;
         return NumberEventPayload;
     }(EventPayload));
     Catacombs.NumberEventPayload = NumberEventPayload;
-    var TupleEventPayload = (function (_super) {
+    var TupleEventPayload = /** @class */ (function (_super) {
         __extends(TupleEventPayload, _super);
         function TupleEventPayload(type, x, y) {
             var _this = _super.call(this, type) || this;
@@ -67,7 +67,7 @@ var Catacombs;
         return TupleEventPayload;
     }(EventPayload));
     Catacombs.TupleEventPayload = TupleEventPayload;
-    var PlayerMovePayload = (function (_super) {
+    var PlayerMovePayload = /** @class */ (function (_super) {
         __extends(PlayerMovePayload, _super);
         function PlayerMovePayload(playerId, fromX, fromY, toX, toY) {
             var _this = _super.call(this, EventType.PLAYER_MOVE) || this;
@@ -81,7 +81,7 @@ var Catacombs;
         return PlayerMovePayload;
     }(EventPayload));
     Catacombs.PlayerMovePayload = PlayerMovePayload;
-    var MonsterMovePayload = (function (_super) {
+    var MonsterMovePayload = /** @class */ (function (_super) {
         __extends(MonsterMovePayload, _super);
         function MonsterMovePayload(monsterId, fromX, fromY, toX, toY) {
             var _this = _super.call(this, EventType.MONSTER_MOVE) || this;
@@ -95,7 +95,7 @@ var Catacombs;
         return MonsterMovePayload;
     }(EventPayload));
     Catacombs.MonsterMovePayload = MonsterMovePayload;
-    var RoomItemObtainedPayload = (function (_super) {
+    var RoomItemObtainedPayload = /** @class */ (function (_super) {
         __extends(RoomItemObtainedPayload, _super);
         function RoomItemObtainedPayload(room, item, playerId) {
             var _this = _super.call(this, EventType.ROOM_ITEM_OBTAINED) || this;
@@ -107,7 +107,7 @@ var Catacombs;
         return RoomItemObtainedPayload;
     }(EventPayload));
     Catacombs.RoomItemObtainedPayload = RoomItemObtainedPayload;
-    var EventBus = (function () {
+    var EventBus = /** @class */ (function () {
         function EventBus() {
             this.consumers = {};
         }

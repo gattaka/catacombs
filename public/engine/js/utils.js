@@ -1,11 +1,11 @@
 var Catacombs;
 (function (Catacombs) {
-    var Key = (function () {
+    var Key = /** @class */ (function () {
         function Key() {
         }
         return Key;
     }());
-    var Keyboard = (function () {
+    var Keyboard = /** @class */ (function () {
         function Keyboard() {
         }
         ;
@@ -42,7 +42,7 @@ var Catacombs;
         return Keyboard;
     }());
     Catacombs.Keyboard = Keyboard;
-    var Utils = (function () {
+    var Utils = /** @class */ (function () {
         function Utils() {
         }
         /**
@@ -62,7 +62,7 @@ var Catacombs;
         return Utils;
     }());
     Catacombs.Utils = Utils;
-    var Array2D = (function () {
+    var Array2D = /** @class */ (function () {
         function Array2D(width, height) {
             if (width === void 0) { width = 0; }
             if (height === void 0) { height = 0; }

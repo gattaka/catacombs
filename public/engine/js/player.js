@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Catacombs;
 (function (Catacombs) {
-    var TreasureItem = (function () {
+    var TreasureItem = /** @class */ (function () {
         function TreasureItem(def, amount) {
             if (amount === void 0) { amount = 1; }
             this.def = def;
@@ -18,7 +18,7 @@ var Catacombs;
         }
         return TreasureItem;
     }());
-    var Player = (function (_super) {
+    var Player = /** @class */ (function (_super) {
         __extends(Player, _super);
         function Player(map, playerId) {
             var _this = _super.call(this, map, playerId, map.center, map.center, true) || this;
@@ -127,8 +127,8 @@ var Catacombs;
             Catacombs.Equipment.create(def);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
         };
+        Player.playersCount = 0;
         return Player;
     }(Catacombs.Creature));
-    Player.playersCount = 0;
     Catacombs.Player = Player;
 })(Catacombs || (Catacombs = {}));

@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Catacombs;
 (function (Catacombs) {
-    var Creature = (function (_super) {
+    var Creature = /** @class */ (function (_super) {
         __extends(Creature, _super);
         function Creature(map, creatureId, mapx, mapy, canReveal) {
             var _this = _super.call(this, map, creatureId, mapx, mapy) || this;

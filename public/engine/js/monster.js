@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Catacombs;
 (function (Catacombs) {
-    var MonsterDef = (function () {
+    var MonsterDef = /** @class */ (function () {
         function MonsterDef(type, file, tier, defense, attack, availableInstances) {
             this.type = type;
             this.file = file;
@@ -23,12 +23,12 @@ var Catacombs;
         MonsterDef.register = function (type, file, tier, defense, attack, availableInstances) {
             MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, attack, availableInstances);
         };
+        MonsterDef.totalAvailableInstances = 0;
+        MonsterDef.monsterDefs = new Array();
         return MonsterDef;
     }());
-    MonsterDef.totalAvailableInstances = 0;
-    MonsterDef.monsterDefs = new Array();
     Catacombs.MonsterDef = MonsterDef;
-    var Monster = (function (_super) {
+    var Monster = /** @class */ (function (_super) {
         __extends(Monster, _super);
         function Monster(map, creatureId, mapx, mapy, def) {
             var _this = _super.call(this, map, creatureId, mapx, mapy, false) || this;
@@ -65,9 +65,9 @@ var Catacombs;
             toRoom.monsters[this.id] = this;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         };
+        Monster.monstersCount = 0;
         return Monster;
     }(Catacombs.Creature));
-    Monster.monstersCount = 0;
     Catacombs.Monster = Monster;
     var MosterType;
     (function (MosterType) {

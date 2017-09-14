@@ -1,6 +1,6 @@
 var Catacombs;
 (function (Catacombs) {
-    var Controls = (function () {
+    var Controls = /** @class */ (function () {
         function Controls(proc) {
             this.proc = proc;
             this.activeKeeper = false;

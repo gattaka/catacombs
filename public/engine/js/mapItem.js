@@ -1,6 +1,6 @@
 var Catacombs;
 (function (Catacombs) {
-    var MapItem = (function () {
+    var MapItem = /** @class */ (function () {
         function MapItem(map, id, mapx, mapy) {
             this.map = map;
             this.id = id;

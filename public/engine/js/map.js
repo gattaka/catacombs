@@ -1,6 +1,6 @@
 var Catacombs;
 (function (Catacombs) {
-    var Map = (function () {
+    var Map = /** @class */ (function () {
         function Map(sideSize, proc) {
             this.sideSize = sideSize;
             this.proc = proc;
@@ -78,7 +78,7 @@ var Catacombs;
         return Map;
     }());
     Catacombs.Map = Map;
-    var Room = (function () {
+    var Room = /** @class */ (function () {
         function Room(def, mapx, mapy, rotatedExits, rotation) {
             this.def = def;
             this.mapx = mapx;
@@ -93,7 +93,7 @@ var Catacombs;
         return Room;
     }());
     Catacombs.Room = Room;
-    var Movement = (function () {
+    var Movement = /** @class */ (function () {
         function Movement(sideFrom, sideTo, fromX, fromY, toX, toY) {
             this.sideFrom = sideFrom;
             this.sideTo = sideTo;
@@ -105,7 +105,7 @@ var Catacombs;
         return Movement;
     }());
     Catacombs.Movement = Movement;
-    var RoomDef = (function () {
+    var RoomDef = /** @class */ (function () {
         function RoomDef(tex, type, exits, availableInstances) {
             this.tex = tex;
             this.type = type;
@@ -136,10 +136,10 @@ var Catacombs;
             RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, availableInstances);
             RoomDef.totalAvailableInstances += availableInstances;
         };
+        RoomDef.totalAvailableInstances = 0;
+        RoomDef.roomDefs = new Array();
         return RoomDef;
     }());
-    RoomDef.totalAvailableInstances = 0;
-    RoomDef.roomDefs = new Array();
     Catacombs.RoomDef = RoomDef;
     // Místnosti
     // od každého dílku 8 kusů + 9 kusů od křižovatkového dílku

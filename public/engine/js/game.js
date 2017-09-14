@@ -3,9 +3,10 @@
 var Catacombs;
 (function (Catacombs) {
     ;
-    var Game = (function () {
+    var Game = /** @class */ (function () {
         function Game() {
             var self = this;
+            Game.INSTANCE = self;
             // stats
             var statsFPS = new Stats();
             statsFPS.showPanel(0);
@@ -27,6 +28,13 @@ var Catacombs;
             self.stage = new PIXI.Container();
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
+            var resize = function () {
+                var ratio = Math.min(window.innerWidth / Game.defaultWidth, window.innerHeight / Game.defaultHeight);
+                self.stage.scale.set(ratio, ratio);
+                self.stage.x = window.innerWidth / 2 - self.stage.width / 2;
+                self.stage.y = window.innerHeight / 2 - self.stage.height / 2;
+            };
+            window.addEventListener('resize', resize, false);
             // Processing layer
             self.proc = new Catacombs.Proc();
             // Controls
@@ -35,6 +43,7 @@ var Catacombs;
             self.gfx = new Catacombs.Gfx(self.stage, self.controls, self.proc);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, 0));
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.StringEventPayload(Catacombs.EventType.LOG, "hra začala"));
+            resize();
             var ticker = PIXI.ticker.shared;
             ticker.add(function () {
                 statsFPS.begin();
@@ -47,10 +56,12 @@ var Catacombs;
         }
         Game.getInstance = function () {
             if (!Game.INSTANCE) {
-                Game.INSTANCE = new Game();
+                new Game();
             }
             return Game.INSTANCE;
         };
+        Game.defaultWidth = 1920;
+        Game.defaultHeight = 1080;
         return Game;
     }());
     Catacombs.Game = Game;

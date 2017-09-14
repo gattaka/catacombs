@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Catacombs;
 (function (Catacombs) {
-    var TreasureDef = (function () {
+    var TreasureDef = /** @class */ (function () {
         function TreasureDef(type, file, caption, price, availableInstances, canBuy, canPick) {
             this.type = type;
             this.file = file;
@@ -36,13 +36,13 @@ var Catacombs;
             TreasureDef.defsPool.splice(m, 1);
             return def;
         };
+        TreasureDef.totalAvailableInstances = 0;
+        TreasureDef.defsByType = {};
+        TreasureDef.defsPool = [];
         return TreasureDef;
     }());
-    TreasureDef.totalAvailableInstances = 0;
-    TreasureDef.defsByType = {};
-    TreasureDef.defsPool = [];
     Catacombs.TreasureDef = TreasureDef;
-    var Treasure = (function (_super) {
+    var Treasure = /** @class */ (function (_super) {
         __extends(Treasure, _super);
         function Treasure(map, treasureId, mapx, mapy, def) {
             var _this = _super.call(this, map, treasureId, mapx, mapy) || this;
@@ -64,9 +64,9 @@ var Catacombs;
             }
             return new Treasure(map, Treasure.treasureCount, mapx, mapy, def);
         };
+        Treasure.treasureCount = 0;
         return Treasure;
     }(Catacombs.MapItem));
-    Treasure.treasureCount = 0;
     Catacombs.Treasure = Treasure;
     var TreasureType;
     (function (TreasureType) {

@@ -14,6 +14,8 @@ namespace Catacombs {
     export class Game {
 
         private static INSTANCE: Game;
+        private static defaultWidth: number = 1920;
+        private static defaultHeight: number = 1080;
 
         private renderer: PIXI.WebGLRenderer;
         private stage: PIXI.Container;
@@ -23,14 +25,14 @@ namespace Catacombs {
 
         public static getInstance() {
             if (!Game.INSTANCE) {
-                Game.INSTANCE = new Game();
+                new Game();
             }
             return Game.INSTANCE;
         }
 
         private constructor() {
-
-            var self = this;
+            let self = this;
+            Game.INSTANCE = self;
 
             // stats
             var statsFPS = new Stats();
@@ -58,6 +60,14 @@ namespace Catacombs {
             self.stage.fixedWidth = window.innerWidth;
             self.stage.fixedHeight = window.innerHeight;
 
+            let resize = () => {
+                let ratio = Math.min(window.innerWidth / Game.defaultWidth, window.innerHeight / Game.defaultHeight);
+                self.stage.scale.set(ratio, ratio);
+                self.stage.x = window.innerWidth / 2 - self.stage.width / 2;
+                self.stage.y = window.innerHeight / 2 - self.stage.height / 2;
+            }
+            window.addEventListener('resize', resize, false);
+
             // Processing layer
             self.proc = new Proc();
 
@@ -69,6 +79,8 @@ namespace Catacombs {
 
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, 0));
             EventBus.getInstance().fireEvent(new StringEventPayload(EventType.LOG, "hra začala"));
+
+            resize();
 
             let ticker = PIXI.ticker.shared;
             ticker.add(() => {
