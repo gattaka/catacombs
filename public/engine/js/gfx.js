@@ -332,7 +332,7 @@ var Catacombs;
             keeperIcon.x = 10 + self.getUITokenImgSize() / 2;
             keeperIcon.y = 10 + 2 * proc.players.length * (self.getUITokenImgSize() + 20) + self.getUITokenImgSize() / 2;
             // Přeskočit tah btn
-            var skipBtn = self.createBtn("Přeskočit tah (mezerník)", 0xd29e36, rmenu.fixedWidth, 30, function () { self.controls.next(); });
+            var skipBtn = self.createBtn("Přeskočit tah", 0xd29e36, rmenu.fixedWidth, 30, function () { self.controls.next(); });
             skipBtn.x = 10;
             skipBtn.y = keeperIcon.y + self.getUITokenImgSize() * 2;
             rmenu.addChild(skipBtn);
@@ -532,15 +532,24 @@ var Catacombs;
             });
         };
         Gfx.prototype.chooseMonster = function (monster, sprite) {
-            // vybírám netvora v tahu keepera
-            this.controls.activeMonster = monster.id;
             this.bounceStop();
-            this.bounce([sprite]);
-            this.deactivateMonsterRoomSprites();
-            this.enablePlayersToBeHit(monster.mapx, monster.mapy);
             this.removeMonsterChooseMarks();
-            // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
-            this.enableRoomsForTravel(monster.mapx, monster.mapy, false, false);
+            this.deactivateMonsterRoomSprites();
+            if (monster.def.type == Catacombs.MonsterType.ZOMBIE && monster.sleeping) {
+                monster.sleeping = false;
+                var monsterUI = this.monsterRoomSpriteById[monster.id];
+                monsterUI.alpha = 1;
+                this.createFadeText("OŽIVEN", monsterUI.x, monsterUI.y);
+                this.controls.next();
+            }
+            else {
+                // vybírám netvora v tahu keepera            
+                this.controls.activeMonster = monster.id;
+                this.bounce([sprite]);
+                this.enablePlayersToBeHit(monster.mapx, monster.mapy);
+                // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
+                this.enableRoomsForTravel(monster.mapx, monster.mapy, false, false);
+            }
         };
         Gfx.prototype.removeMonsterChooseMarks = function () {
             this.monsterChooseMarks.forEach(function (m) {
@@ -554,7 +563,7 @@ var Catacombs;
             this.deactivateMonsterRoomSprites();
             var room = this.proc.map.rooms.getValue(mapx, mapy);
             room.monsters.forEach(function (monster) {
-                if (!monster)
+                if (!monster || (monster.def.type == Catacombs.MonsterType.ZOMBIE && monster.sleeping))
                     return;
                 var monsterUI = _this.monsterRoomSpriteById[monster.id];
                 monsterUI.interactive = true;
@@ -575,13 +584,26 @@ var Catacombs;
                     deployedAttack += p.attack;
             });
             if (deployedAttack > monster.def.defense) {
-                this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
-                this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
-                this.drawRoomTokens(monster.mapx, monster.mapy);
-                this.deactivateMonsterRoomSprites();
-                delete this.monsterRoomSpriteById[monster.id];
-                this.proc.killMonster(monster);
-                this.controls.next();
+                // Zombie se dá trvale zabít až když je +2 útok, 
+                // jinak se jenom omráčí a v další tahu ji může keeper znovu oživit
+                if (monster.def.type != Catacombs.MonsterType.ZOMBIE || deployedAttack > monster.def.defense + 1 && monster.def.type == Catacombs.MonsterType.ZOMBIE) {
+                    this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
+                    this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
+                    this.drawRoomTokens(monster.mapx, monster.mapy);
+                    this.deactivateMonsterRoomSprites();
+                    delete this.monsterRoomSpriteById[monster.id];
+                    this.proc.killMonster(monster);
+                }
+                else {
+                    monster.sleeping = true;
+                    var monsterUI = this.monsterRoomSpriteById[monster.id];
+                    monsterUI.alpha = 0.5;
+                    this.createFadeText("OMRÁČEN", monsterUI.x, monsterUI.y);
+                    this.deactivateMonsterRoomSprites();
+                }
+                this.controls.moves++;
+                if (this.controls.moves > 1)
+                    this.controls.next();
             }
             else {
                 this.createFadeText("NEÚČINNÉ", monsterRoomSprite.x, monsterRoomSprite.y);

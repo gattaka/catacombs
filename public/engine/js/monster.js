@@ -33,6 +33,7 @@ var Catacombs;
         function Monster(map, creatureId, mapx, mapy, def) {
             var _this = _super.call(this, map, creatureId, mapx, mapy, false) || this;
             _this.def = def;
+            _this.sleeping = false;
             return _this;
         }
         Monster.createRandom = function (map, maxTier, mapx, mapy) {
@@ -69,18 +70,18 @@ var Catacombs;
         return Monster;
     }(Catacombs.Creature));
     Catacombs.Monster = Monster;
-    var MosterType;
-    (function (MosterType) {
-        MosterType[MosterType["ZOMBIE"] = 0] = "ZOMBIE";
-        MosterType[MosterType["SKELETON"] = 1] = "SKELETON";
-        MosterType[MosterType["SWAMPER"] = 2] = "SWAMPER";
-        MosterType[MosterType["TROLL"] = 3] = "TROLL";
-        MosterType[MosterType["MINOTAUR"] = 4] = "MINOTAUR";
-    })(MosterType = Catacombs.MosterType || (Catacombs.MosterType = {}));
+    var MonsterType;
+    (function (MonsterType) {
+        MonsterType[MonsterType["ZOMBIE"] = 0] = "ZOMBIE";
+        MonsterType[MonsterType["SKELETON"] = 1] = "SKELETON";
+        MonsterType[MonsterType["SWAMPER"] = 2] = "SWAMPER";
+        MonsterType[MonsterType["TROLL"] = 3] = "TROLL";
+        MonsterType[MonsterType["MINOTAUR"] = 4] = "MINOTAUR";
+    })(MonsterType = Catacombs.MonsterType || (Catacombs.MonsterType = {}));
     // netvoři
-    MonsterDef.register(MosterType.ZOMBIE, "zombie", 1, 0, 1, 5);
-    MonsterDef.register(MosterType.SKELETON, "skeleton", 2, 1, 1, 3);
-    MonsterDef.register(MosterType.SWAMPER, "swamper", 3, 1, 2, 2);
-    MonsterDef.register(MosterType.TROLL, "troll", 4, 2, 2, 1);
-    MonsterDef.register(MosterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
+    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 5);
+    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 3);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 2);
+    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 1);
+    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
 })(Catacombs || (Catacombs = {}));

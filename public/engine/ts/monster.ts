@@ -3,17 +3,18 @@ namespace Catacombs {
     export class MonsterDef {
         public static totalAvailableInstances = 0;
         public static monsterDefs = new Array<MonsterDef>();
-        public static register(type: MosterType, file: string, tier: number, defense: number, attack: number, availableInstances: number) {
+        public static register(type: MonsterType, file: string, tier: number, defense: number, attack: number, availableInstances: number) {
             MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, attack, availableInstances);
         }
 
-        private constructor(public type: MosterType, public file: string, public tier: number, public defense: number, public attack: number, public availableInstances: number) {
+        private constructor(public type: MonsterType, public file: string, public tier: number, public defense: number, public attack: number, public availableInstances: number) {
             MonsterDef.totalAvailableInstances += availableInstances;
         }
     }
 
     export class Monster extends Creature {
         public static monstersCount = 0;
+        public sleeping: boolean = false;
         public static createRandom(map: Map, maxTier: number, mapx: number, mapy: number): Monster {
             let m = Math.floor(Math.random() * maxTier);
             for (let i = 0; i < maxTier; i++) {
@@ -57,15 +58,15 @@ namespace Catacombs {
         }
     }
 
-    export enum MosterType {
+    export enum MonsterType {
         ZOMBIE, SKELETON, SWAMPER, TROLL, MINOTAUR
     }
 
     // netvoři
-    MonsterDef.register(MosterType.ZOMBIE, "zombie", 1, 0, 1, 5);
-    MonsterDef.register(MosterType.SKELETON, "skeleton", 2, 1, 1, 3);
-    MonsterDef.register(MosterType.SWAMPER, "swamper", 3, 1, 2, 2);
-    MonsterDef.register(MosterType.TROLL, "troll", 4, 2, 2, 1);
-    MonsterDef.register(MosterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
+    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 5);
+    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 3);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 2);
+    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 1);
+    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
 
 }
