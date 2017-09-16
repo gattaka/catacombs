@@ -65,7 +65,7 @@ namespace Catacombs {
                 return false;
             }
             // je cílová místnost v mezích mapy?
-            if (movement.toX < 0 || movement.toX > this.proc.map.sideSize || movement.toY < 0 || movement.toY > this.proc.map.sideSize)
+            if (movement.toX < 0 || movement.toX >= this.proc.map.sideSize || movement.toY < 0 || movement.toY >= this.proc.map.sideSize)
                 return false;
             // existuje cílová místnost?
             let toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
