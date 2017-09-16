@@ -35,9 +35,8 @@ namespace Catacombs {
             } else {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
-                Monster.monstersCount++;
+                return new Monster(map, Monster.monstersCount++, mapx, mapy, def);
             }
-            return new Monster(map, Monster.monstersCount, mapx, mapy, def);
         }
 
         private constructor(
