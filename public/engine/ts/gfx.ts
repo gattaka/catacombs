@@ -628,7 +628,7 @@ namespace Catacombs {
                     playerRoomSprite.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb_token.png');
                     playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
                 }
-                this.controls.next();
+                this.controls.action();
             } else {
                 this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
             }
