@@ -22,7 +22,6 @@ namespace Catacombs {
         public killMonster(monster: Monster) {
             delete this.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
             delete this.monsters[monster.id];
-            Monster.monstersCount--;
         }
     }
 }

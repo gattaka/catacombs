@@ -79,7 +79,11 @@ var Catacombs;
             return true;
         };
         Controls.prototype.activatePlayer = function () {
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+            // zkontroluj, že hráč stále žije (mohlo se stát, že ho keeper mezitím zabil)
+            if (this.proc.players[this.activePlayer].health > 0)
+                Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
+            else
+                this.nextPlayer();
         };
         Controls.prototype.nextPlayer = function () {
             this.prepareNextPlayer();
@@ -94,7 +98,7 @@ var Catacombs;
                 }
             }
             else {
-                if (this.prepareNextPlayer() && Catacombs.Monster.monstersCount > 0) {
+                if (this.prepareNextPlayer() && Object.keys(this.proc.monsters).length > 0) {
                     // začíná hrát keeper
                     this.activeKeeper = true;
                     this.activeMonster = undefined;

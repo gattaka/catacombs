@@ -56,7 +56,7 @@ var Catacombs;
             else {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
-                return new Monster(map, Monster.monstersCount++, mapx, mapy, def);
+                return new Monster(map, Monster.nextId++, mapx, mapy, def);
             }
         };
         Monster.prototype.innerMove = function (fromRoom, toRoom) {
@@ -65,7 +65,7 @@ var Catacombs;
             toRoom.monsters[this.id] = this;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.MonsterMovePayload(this.id, fromRoom.mapx, fromRoom.mapy, toRoom.mapx, toRoom.mapy));
         };
-        Monster.monstersCount = 0;
+        Monster.nextId = 0;
         return Monster;
     }(Catacombs.Creature));
     Catacombs.Monster = Monster;

@@ -239,10 +239,10 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_ACTIVATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
-                    this.bounce([playerRoomSprite, playerMenuIcon]);
-                    this.enableMonstersToBeHit(player.mapx, player.mapy);
+                    self.bounce([playerRoomSprite, playerMenuIcon]);
+                    self.enableMonstersToBeHit(player.mapx, player.mapy);
                     // TODO pokud má hráč lockpicks, může procházet mřížemi
-                    this.enableRoomsForTravel(player.mapx, player.mapy, false, true);
+                    self.enableRoomsForTravel(player.mapx, player.mapy, false, true);
                 });
 
                 let healthUI = new PIXI.Container();
@@ -352,7 +352,7 @@ namespace Catacombs {
                 let sprite = self.monsterRoomSpriteById[p.monsterId];
                 self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                 self.enablePlayersToBeHit(p.toX, p.toY);
-                // netvoři nemohou prcházet mřížemi a nemohou objevovat místnosti
+                // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
                 self.enableRoomsForTravel(p.toX, p.toY, false, false);
                 return false;
             });
@@ -592,7 +592,6 @@ namespace Catacombs {
                     this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
                     this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
                     this.drawRoomTokens(monster.mapx, monster.mapy);
-                    this.deactivateMonsterRoomSprites();
                     delete this.monsterRoomSpriteById[monster.id];
                     this.proc.killMonster(monster);
                 } else {
@@ -600,7 +599,6 @@ namespace Catacombs {
                     let monsterUI = this.monsterRoomSpriteById[monster.id];
                     monsterUI.alpha = 0.5;
                     this.createFadeText("OMRÁČEN", monsterUI.x, monsterUI.y);
-                    this.deactivateMonsterRoomSprites();
                 }
                 this.controls.action();
             } else {
@@ -624,7 +622,6 @@ namespace Catacombs {
             let currentMonster = this.proc.monsters[this.controls.getActiveMonster()];
             if (currentMonster.def.attack > player.defense) {
                 this.createFadeSprite('images/life_token.png', playerRoomSprite.x, playerRoomSprite.y);
-                this.deactivatePlayerRoomSprites();
                 player.health--;
                 healthUI.removeChildAt(healthUI.children.length - 1);
                 if (player.health == 0) {

@@ -85,7 +85,12 @@ namespace Catacombs {
         }
 
         private activatePlayer() {
-            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+            // zkontroluj, že hráč stále žije (mohlo se stát, že ho keeper mezitím zabil)
+            if (this.proc.players[this.activePlayer].health > 0)
+                EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
+            else
+                this.nextPlayer();
+
         }
 
         private nextPlayer() {
@@ -101,7 +106,7 @@ namespace Catacombs {
                     this.activatePlayer();
                 }
             } else {
-                if (this.prepareNextPlayer() && Monster.monstersCount > 0) {
+                if (this.prepareNextPlayer() && Object.keys(this.proc.monsters).length > 0) {
                     // začíná hrát keeper
                     this.activeKeeper = true;
                     this.activeMonster = undefined;

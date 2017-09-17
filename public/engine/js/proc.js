@@ -16,7 +16,6 @@ var Catacombs;
         Proc.prototype.killMonster = function (monster) {
             delete this.map.rooms.getValue(monster.mapx, monster.mapy).monsters[monster.id];
             delete this.monsters[monster.id];
-            Catacombs.Monster.monstersCount--;
         };
         Proc.PLAYERS_COUNT = 4;
         return Proc;

@@ -13,8 +13,9 @@ namespace Catacombs {
     }
 
     export class Monster extends Creature {
-        public static monstersCount = 0;
+        private static nextId = 0;
         public sleeping: boolean = false;
+
         public static createRandom(map: Map, maxTier: number, mapx: number, mapy: number): Monster {
             let m = Math.floor(Math.random() * maxTier);
             for (let i = 0; i < maxTier; i++) {
@@ -35,7 +36,7 @@ namespace Catacombs {
             } else {
                 def.availableInstances--;
                 MonsterDef.totalAvailableInstances--;
-                return new Monster(map, Monster.monstersCount++, mapx, mapy, def);
+                return new Monster(map, Monster.nextId++, mapx, mapy, def);
             }
         }
 
