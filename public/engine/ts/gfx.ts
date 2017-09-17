@@ -169,8 +169,14 @@ namespace Catacombs {
                 if (!def.canBuy)
                     return;
 
+                let itemsInCol = 2;
+                let col = Math.floor(i / itemsInCol);
+                let row = i % itemsInCol;
+                if (row == 0 && col != 0)
+                    lmenuLastY -= itemsInCol * (10 + self.getUITokenImgSize());
+
                 let token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + def.file + '.png'));
-                token.x = 10;
+                token.x = 10 + col * lmenu.fixedWidth / 2;
                 token.y = lmenuLastY + 10;
                 lmenuLastY = token.y + self.getUITokenImgSize();
                 lmenu.addChild(token);
@@ -249,11 +255,14 @@ namespace Catacombs {
                 rmenu.addChild(healthUI);
                 healthUI.x = playerMenuIcon.x + self.getUITokenImgSize() / 2 + 10;
                 healthUI.y = playerMenuIcon.y - self.getUITokenImgSize() / 2;
-                for (let h = 0; h < player.health; h++) {
-                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
-                    healthUI.addChild(sprite);
-                    sprite.x = h * self.getUITokenImgSize() / 2
+                let populateHealthUI = () => {
+                    for (let h = 0; h < player.health; h++) {
+                        let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
+                        healthUI.addChild(sprite);
+                        sprite.x = h * self.getUITokenImgSize() / 2
+                    }
                 }
+                populateHealthUI();
 
                 let equipmentUI = new PIXI.Container();
                 self.playerEquipment[player.id] = equipmentUI;
@@ -301,14 +310,19 @@ namespace Catacombs {
                             y: rmenu.y + playerMenuIcon.y
                         }, 300).call(function () {
                             stage.removeChild(sprite);
-                            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, p.playerId));
+                            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_BAR_UPDATE, p.playerId));
                         });
                     return false;
                 });
 
-                EventBus.getInstance().registerConsumer(EventType.INV_UPDATE, (p: NumberEventPayload): boolean => {
+                EventBus.getInstance().registerConsumer(EventType.PLAYER_BAR_UPDATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
+
+                    // Health bar
+                    healthUI.removeChildren();
+                    populateHealthUI();
+
                     // Treasure inv
                     treasureUI.removeChildren();
                     let lastX = 0;
@@ -330,6 +344,7 @@ namespace Catacombs {
                         }
                         lastX += self.getUITokenImgSize() * 0.75;
                     }
+
                     // Equipment inv
                     equipmentUI.removeChildren();
                     lastX = 0;
@@ -579,11 +594,11 @@ namespace Catacombs {
             // než je cílový netvor
             let deployedAttack = currentPlayer.attack;
             // a k tom útokem všech hráčů v místnosti, kde je netvor, na kterého útočím
-            let monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
-            monsterRoom.players.forEach((p) => {
-                if (p != currentPlayer && p.health > 0)
-                    deployedAttack += p.attack;
-            })
+            // let monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
+            // monsterRoom.players.forEach((p) => {
+            //     if (p != currentPlayer && p.health > 0)
+            //         deployedAttack += p.attack;
+            // })
 
             if (deployedAttack > monster.def.defense) {
                 // Zombie se dá trvale zabít až když je +2 útok, 
@@ -628,7 +643,8 @@ namespace Catacombs {
                     playerRoomSprite.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb_token.png');
                     playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
                 }
-                this.controls.action();
+                // netvor má pouze jeden útok za tah
+                this.controls.next();
             } else {
                 this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
             }
@@ -659,7 +675,10 @@ namespace Catacombs {
             createjs.Tween.get(obj).to({
                 y: y - 50
             }, 800).call(() => {
-                obj.parent.removeChild(obj);
+                // TODO tady to z neznámého důvodu jednou spadlo na obj.parent = null ...
+                if (obj.parent)
+                    obj.parent.removeChild(obj);
+                else console.log("obj.parent je null!");
             });
             createjs.Tween.get(obj).wait(300).to({
                 alpha: 0

@@ -71,8 +71,8 @@ var Catacombs;
             for (var i = 0; i < this.proc.players.length; i++) {
                 this.activePlayer = (this.activePlayer + 1) % this.proc.players.length;
                 if (this.proc.players[this.activePlayer].health > 0) {
-                    // true když dojde k přetočení
-                    return lastPlayer > this.activePlayer;
+                    // true když dojde k přetočení (když jsem poslední hráč, jsem to zase já)
+                    return lastPlayer >= this.activePlayer;
                 }
             }
             // všichni hráči jsou mrtví... takže hraje keeper

@@ -15,7 +15,7 @@ var Catacombs;
         EventType[EventType["PLAYER_MOVE"] = 0] = "PLAYER_MOVE";
         EventType[EventType["MONSTER_MOVE"] = 1] = "MONSTER_MOVE";
         EventType[EventType["ROOM_REVEALED"] = 2] = "ROOM_REVEALED";
-        EventType[EventType["INV_UPDATE"] = 3] = "INV_UPDATE";
+        EventType[EventType["PLAYER_BAR_UPDATE"] = 3] = "PLAYER_BAR_UPDATE";
         EventType[EventType["ROOM_ITEM_OBTAINED"] = 4] = "ROOM_ITEM_OBTAINED";
         EventType[EventType["PLAYER_ACTIVATE"] = 5] = "PLAYER_ACTIVATE";
         EventType[EventType["MONSTER_ACTIVATE"] = 6] = "MONSTER_ACTIVATE";

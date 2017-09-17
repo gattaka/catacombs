@@ -27,7 +27,7 @@ var Catacombs;
             _this.defense = 0;
             _this.treasure = {};
             _this.equipment = {};
-            _this.health = 4;
+            _this.health = Player.MAX_HEALTH;
             _this.map.rooms.getValue(_this.mapx, _this.mapy).players[_this.id] = _this;
             return _this;
         }
@@ -74,11 +74,11 @@ var Catacombs;
         Player.prototype.useItem = function (type) {
             var item = this.treasure[Catacombs.EquipmentType[type]];
             item.amount--;
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_BAR_UPDATE, this.id));
         };
         Player.prototype.buy = function (def) {
             // už tohle vybavení má
-            if (this.equipment[Catacombs.EquipmentType[def.type]])
+            if (this.equipment[Catacombs.EquipmentType[def.type]] || (def.type == Catacombs.EquipmentType.POTION && this.health == Player.MAX_HEALTH))
                 return;
             this.treasureSum -= def.price;
             var toPay = def.price;
@@ -111,22 +111,32 @@ var Catacombs;
                         break;
                 }
             }
-            this.equipment[Catacombs.EquipmentType[def.type]] = def;
             switch (def.type) {
                 case Catacombs.EquipmentType.ARMOR:
                     this.defense++;
+                    this.equipment[Catacombs.EquipmentType[def.type]] = def;
                     break;
                 case Catacombs.EquipmentType.SHIELD:
                     this.defense++;
+                    this.equipment[Catacombs.EquipmentType[def.type]] = def;
                     break;
                 case Catacombs.EquipmentType.SWORD:
                     this.attack = 2;
+                    this.equipment[Catacombs.EquipmentType[def.type]] = def;
+                    break;
+                case Catacombs.EquipmentType.CROSSBOW:
+                    this.attack = 3;
+                    this.equipment[Catacombs.EquipmentType[def.type]] = def;
+                    break;
+                case Catacombs.EquipmentType.POTION:
+                    this.health++;
                     break;
             }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Catacombs.Equipment.create(def);
-            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, this.id));
+            Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_BAR_UPDATE, this.id));
         };
+        Player.MAX_HEALTH = 4;
         Player.playersCount = 0;
         return Player;
     }(Catacombs.Creature));

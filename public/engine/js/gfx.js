@@ -152,8 +152,13 @@ var Catacombs;
                 var def = Catacombs.TreasureDef.defsByType[type];
                 if (!def.canBuy)
                     return;
+                var itemsInCol = 2;
+                var col = Math.floor(i / itemsInCol);
+                var row = i % itemsInCol;
+                if (row == 0 && col != 0)
+                    lmenuLastY -= itemsInCol * (10 + self.getUITokenImgSize());
                 var token = new PIXI.Sprite(PIXI.Texture.fromImage('images/' + def.file + '.png'));
-                token.x = 10;
+                token.x = 10 + col * lmenu.fixedWidth / 2;
                 token.y = lmenuLastY + 10;
                 lmenuLastY = token.y + self.getUITokenImgSize();
                 lmenu.addChild(token);
@@ -224,11 +229,14 @@ var Catacombs;
                 rmenu.addChild(healthUI);
                 healthUI.x = playerMenuIcon.x + self.getUITokenImgSize() / 2 + 10;
                 healthUI.y = playerMenuIcon.y - self.getUITokenImgSize() / 2;
-                for (var h = 0; h < player.health; h++) {
-                    var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
-                    healthUI.addChild(sprite);
-                    sprite.x = h * self.getUITokenImgSize() / 2;
-                }
+                var populateHealthUI = function () {
+                    for (var h = 0; h < player.health; h++) {
+                        var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
+                        healthUI.addChild(sprite);
+                        sprite.x = h * self.getUITokenImgSize() / 2;
+                    }
+                };
+                populateHealthUI();
                 var equipmentUI = new PIXI.Container();
                 self.playerEquipment[player.id] = equipmentUI;
                 rmenu.addChild(equipmentUI);
@@ -271,13 +279,16 @@ var Catacombs;
                         y: rmenu.y + playerMenuIcon.y
                     }, 300).call(function () {
                         stage.removeChild(sprite);
-                        Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.INV_UPDATE, p.playerId));
+                        Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_BAR_UPDATE, p.playerId));
                     });
                     return false;
                 });
-                Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.INV_UPDATE, function (p) {
+                Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.PLAYER_BAR_UPDATE, function (p) {
                     if (i != p.payload)
                         return;
+                    // Health bar
+                    healthUI.removeChildren();
+                    populateHealthUI();
                     // Treasure inv
                     treasureUI.removeChildren();
                     var lastX = 0;
@@ -544,11 +555,11 @@ var Catacombs;
             // než je cílový netvor
             var deployedAttack = currentPlayer.attack;
             // a k tom útokem všech hráčů v místnosti, kde je netvor, na kterého útočím
-            var monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
-            monsterRoom.players.forEach(function (p) {
-                if (p != currentPlayer && p.health > 0)
-                    deployedAttack += p.attack;
-            });
+            // let monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
+            // monsterRoom.players.forEach((p) => {
+            //     if (p != currentPlayer && p.health > 0)
+            //         deployedAttack += p.attack;
+            // })
             if (deployedAttack > monster.def.defense) {
                 // Zombie se dá trvale zabít až když je +2 útok, 
                 // jinak se jenom omráčí a v další tahu ji může keeper znovu oživit
@@ -593,7 +604,8 @@ var Catacombs;
                     playerRoomSprite.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb_token.png');
                     playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
                 }
-                this.controls.action();
+                // netvor má pouze jeden útok za tah
+                this.controls.next();
             }
             else {
                 this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
@@ -621,7 +633,11 @@ var Catacombs;
             createjs.Tween.get(obj).to({
                 y: y - 50
             }, 800).call(function () {
-                obj.parent.removeChild(obj);
+                // TODO tady to z neznámého důvodu jednou spadlo na obj.parent = null ...
+                if (obj.parent)
+                    obj.parent.removeChild(obj);
+                else
+                    console.log("obj.parent je null!");
             });
             createjs.Tween.get(obj).wait(300).to({
                 alpha: 0

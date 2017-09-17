@@ -8,6 +8,8 @@ namespace Catacombs {
     }
 
     export class Player extends Creature {
+        private static MAX_HEALTH = 4;
+
         private static playersCount = 0;
         public static create(map: Map): Player {
             if (Player.playersCount > 4)
@@ -25,7 +27,7 @@ namespace Catacombs {
 
         private constructor(map: Map, playerId: number) {
             super(map, playerId, map.center, map.center, true);
-            this.health = 4;
+            this.health = Player.MAX_HEALTH;
             this.map.rooms.getValue(this.mapx, this.mapy).players[this.id] = this;
         }
 
@@ -67,12 +69,13 @@ namespace Catacombs {
         useItem(type: EquipmentType) {
             let item = this.treasure[EquipmentType[type]];
             item.amount--;
-            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.id));
+            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_BAR_UPDATE, this.id));
         }
+
 
         buy(def: EquipmentDef) {
             // už tohle vybavení má
-            if (this.equipment[EquipmentType[def.type]])
+            if (this.equipment[EquipmentType[def.type]] || (def.type == EquipmentType.POTION && this.health == Player.MAX_HEALTH))
                 return;
             this.treasureSum -= def.price;
             let toPay = def.price;
@@ -104,21 +107,30 @@ namespace Catacombs {
                         break;
                 }
             }
-            this.equipment[EquipmentType[def.type]] = def;
             switch (def.type) {
                 case EquipmentType.ARMOR:
                     this.defense++;
+                    this.equipment[EquipmentType[def.type]] = def;
                     break;
                 case EquipmentType.SHIELD:
                     this.defense++;
+                    this.equipment[EquipmentType[def.type]] = def;
                     break;
                 case EquipmentType.SWORD:
                     this.attack = 2;
+                    this.equipment[EquipmentType[def.type]] = def;
+                    break;
+                    case EquipmentType.CROSSBOW:
+                    this.attack = 3;
+                    this.equipment[EquipmentType[def.type]] = def;
+                    break;
+                case EquipmentType.POTION:
+                    this.health++;
                     break;
             }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Equipment.create(def);
-            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.INV_UPDATE, this.id));
+            EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_BAR_UPDATE, this.id));
         }
 
     }

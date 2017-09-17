@@ -4,7 +4,7 @@ namespace Catacombs {
         PLAYER_MOVE,
         MONSTER_MOVE,
         ROOM_REVEALED,
-        INV_UPDATE,
+        PLAYER_BAR_UPDATE,
         ROOM_ITEM_OBTAINED,
         PLAYER_ACTIVATE,
         MONSTER_ACTIVATE,

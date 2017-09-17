@@ -93,3 +93,12 @@ Obecné
 - mód hry, kdy by se zombie nedaly zabít, ale jenom se jim utnul tah (oživovali by se)
 - zombie by se mohla dát oživit prostě jako tah keepera
 - default má hráč dva tahy: pohyb + útok/druhý-pohyb, když si ale koupí zbroj, měl by pouze jeden tah: útok/pohyb
+
+- myšlenka, že hráči nemůžou s kostlivci nic udělat, dokud nemají meč je super!
+	- vyžene totiž hráče ze středu plochy, aby hledali poklady pro nákup meče, ale zase jim nebrání kolem kostlivců projít
+	- decentnější varianta jsou zombie, které jde aspoň omráčit, takže příští keeperův tah nehrajou
+- zpoplatnit tahem nákup?
+- netvoři si musí vystačit s jedním útokem, sice můžou udělat 2 kroky jako hráč, ale útokem jejich tah vždy končí
+	- nebo že by byla výhoda žaboucha, že má dva kroky?
+- štít a zbroj jsou špatně dosažitelné a skoro se nemusí použít
+	- hráči nejprve budou investovat do útoku, aby se vůbec někam dostali... zrušit?
