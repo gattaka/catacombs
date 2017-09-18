@@ -23,10 +23,17 @@ namespace Catacombs {
             return this.activeMonster;
         }
 
+        /**
+         * Zaeviduje, že v rámci tahu byla provedena další akce, 
+         * pokud tím byl ukončen tah, vrátí false, jinak true
+         */
         action() {
             this.actions++;
-            if (this.actions > 1)
+            if (this.actions > 1) {
                 this.next();
+                return false;
+            }
+            return true;
         }
 
         // Posune hráče/netvora někam

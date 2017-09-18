@@ -363,7 +363,7 @@ namespace Catacombs {
             self.drawRoomTokens(mapCenter, mapCenter);
 
             EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
-                self.deactivatePlayerRoomSprites();
+                self.disablePlayersToBeHit();
                 let sprite = self.monsterRoomSpriteById[p.monsterId];
                 self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                 self.enablePlayersToBeHit(p.toX, p.toY);
@@ -388,7 +388,7 @@ namespace Catacombs {
                     let monsterUI = self.monsterRoomSpriteById[monster.id];
                     monsterUI.alpha = 1;
                     self.createFadeText("OŽIVEN", monsterUI.x, monsterUI.y);
-                    self.controls.next();
+                    self.next();
                 } else {
                     self.bounce([sprite, keeperIcon]);
                     self.enablePlayersToBeHit(monster.mapx, monster.mapy);
@@ -399,7 +399,7 @@ namespace Catacombs {
             });
 
             // Přeskočit tah btn
-            let skipBtn = self.createBtn("Přeskočit tah", 0xd29e36, rmenu.fixedWidth, 30, () => { self.controls.next() });
+            let skipBtn = self.createBtn("Přeskočit tah", 0xd29e36, rmenu.fixedWidth, 30, () => { self.next() });
             skipBtn.x = 10;
             skipBtn.y = keeperIcon.y + self.getUITokenImgSize() * 2;
             rmenu.addChild(skipBtn);
@@ -511,31 +511,9 @@ namespace Catacombs {
             this.drawRoomTokens(toX, toY);
         }
 
-        private deactivateMonsterRoomSprites() {
-            this.monsterRoomSpriteById.forEach((monster) => {
-                monster.interactive = false;
-                monster.scale.set(1, 1);
-            });
-        }
-
-        private deactivatePlayerRoomSprites() {
-            this.playerRoomSpriteById.forEach((player) => {
-                player.interactive = false;
-                player.scale.set(1, 1);
-            });
-        }
-
-        private deactivateRooms() {
-            this.roomCellContainers.forEach((cont: PIXI.Container) => {
-                if (cont.children.length > 1) {
-                    cont.removeChildAt(1);
-                }
-            });
-        }
-
         private enableRoomsForTravel(mapx: number, mapy: number, ignoreBars: boolean, canExplore: boolean) {
             let self = this;
-            this.deactivateRooms();
+            this.disableRoomsForTravel();
             let directions = [
                 [-1, 0, 0b0001, 0b0100],
                 [1, 0, 0b0100, 0b0001],
@@ -573,15 +551,30 @@ namespace Catacombs {
             });
         }
 
+        private disableRoomsForTravel() {
+            this.roomCellContainers.forEach((cont: PIXI.Container) => {
+                if (cont.children.length > 1) {
+                    cont.removeChildAt(1);
+                }
+            });
+        }
+
         private enableMonstersToBeHit(mapx: number, mapy: number) {
             // Umožni útočit na netvory ve stejné místnosti
-            this.deactivateMonsterRoomSprites();
+            this.disableMonstersToBeHit();
             let room = this.proc.map.rooms.getValue(mapx, mapy);
             room.monsters.forEach((monster) => {
                 if (!monster || (monster.def.type == MonsterType.ZOMBIE && monster.sleeping))
                     return;
                 let monsterUI = this.monsterRoomSpriteById[monster.id];
                 monsterUI.interactive = true;
+            });
+        }
+
+        private disableMonstersToBeHit() {
+            this.monsterRoomSpriteById.forEach((monster) => {
+                monster.interactive = false;
+                monster.scale.set(1, 1);
             });
         }
 
@@ -604,6 +597,7 @@ namespace Catacombs {
                 // Zombie se dá trvale zabít až když je +2 útok, 
                 // jinak se jenom omráčí a v další tahu ji může keeper znovu oživit
                 if (monster.def.type != MonsterType.ZOMBIE || deployedAttack > monster.def.defense + 1 && monster.def.type == MonsterType.ZOMBIE) {
+                    this.disableMonstersToBeHit();
                     this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
                     this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
                     this.drawRoomTokens(monster.mapx, monster.mapy);
@@ -615,7 +609,8 @@ namespace Catacombs {
                     monsterUI.alpha = 0.5;
                     this.createFadeText("OMRÁČEN", monsterUI.x, monsterUI.y);
                 }
-                this.controls.action();
+                if (this.controls.action())
+                    this.enableMonstersToBeHit(monster.mapx, monster.mapy);
             } else {
                 this.createFadeText("NEÚČINNÉ", monsterRoomSprite.x, monsterRoomSprite.y);
             }
@@ -623,13 +618,20 @@ namespace Catacombs {
 
         private enablePlayersToBeHit(mapx: number, mapy: number) {
             // Umožni útočit na živé hráče ve stejné místnosti
-            this.deactivatePlayerRoomSprites();
+            this.disablePlayersToBeHit();
             let room = this.proc.map.rooms.getValue(mapx, mapy);
             room.players.forEach((player) => {
                 if (player.health == 0)
                     return;
                 let playerUI = this.playerRoomSpriteById[player.id];
                 playerUI.interactive = true;
+            });
+        }
+
+        private disablePlayersToBeHit() {
+            this.playerRoomSpriteById.forEach((player) => {
+                player.interactive = false;
+                player.scale.set(1, 1);
             });
         }
 
@@ -644,10 +646,18 @@ namespace Catacombs {
                     playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
                 }
                 // netvor má pouze jeden útok za tah
-                this.controls.next();
+                this.next();
             } else {
                 this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
             }
+        }
+
+        private next() {
+            this.bounceStop();
+            this.disableMonstersToBeHit();
+            this.disablePlayersToBeHit();
+            this.disableRoomsForTravel();
+            this.controls.next();
         }
 
         private createFadeText(message: string, x: number, y: number) {
