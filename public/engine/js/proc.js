@@ -36,7 +36,12 @@ var Catacombs;
                 this.next();
                 return false;
             }
+            console.log("Actions = 1");
             return true;
+        };
+        Proc.prototype.resetActions = function () {
+            console.log("Actions = 0");
+            this.actions = 0;
         };
         // Posune hráče/netvora někam
         Proc.prototype.move = function (movement) {
@@ -55,7 +60,7 @@ var Catacombs;
          * vrať true, protože je možné pokračovat dalším hráčem
          */
         Proc.prototype.nextMonster = function () {
-            this.actions = 0;
+            this.resetActions();
             var lastMonster = this.activeMonster;
             // hledej dalšího netvora
             for (var i = 0; i < this.monsters.length; i++) {
@@ -104,7 +109,7 @@ var Catacombs;
             this.activatePlayer();
         };
         Proc.prototype.next = function () {
-            this.actions = 0;
+            this.resetActions();
             if (this.activeKeeper) {
                 if (this.nextMonster()) {
                     this.activeKeeper = false;

@@ -46,7 +46,13 @@ namespace Catacombs {
                 this.next();
                 return false;
             }
+            console.log("Actions = 1")
             return true;
+        }
+
+        private resetActions() {
+            console.log("Actions = 0");
+            this.actions = 0;
         }
 
         // Posune hráče/netvora někam
@@ -66,7 +72,7 @@ namespace Catacombs {
          * vrať true, protože je možné pokračovat dalším hráčem
          */
         private nextMonster(): boolean {
-            this.actions = 0;
+            this.resetActions();
             let lastMonster = this.activeMonster;
             // hledej dalšího netvora
             for (let i = 0; i < this.monsters.length; i++) {
@@ -118,7 +124,7 @@ namespace Catacombs {
         }
 
         next() {
-            this.actions = 0;
+            this.resetActions();
             if (this.activeKeeper) {
                 if (this.nextMonster()) {
                     this.activeKeeper = false;
