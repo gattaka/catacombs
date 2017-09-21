@@ -37,10 +37,8 @@ var Catacombs;
             window.addEventListener('resize', resize, false);
             // Processing layer
             self.proc = new Catacombs.Proc();
-            // Controls
-            self.controls = new Catacombs.Controls(self.proc);
             // GFX layer 
-            self.gfx = new Catacombs.Gfx(self.stage, self.controls, self.proc);
+            self.gfx = new Catacombs.Gfx(self.stage, self.proc);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, 0));
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.StringEventPayload(Catacombs.EventType.LOG, "hra začala"));
             resize();

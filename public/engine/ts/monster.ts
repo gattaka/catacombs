@@ -7,14 +7,15 @@ namespace Catacombs {
             MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, attack, availableInstances);
         }
 
-        private constructor(public type: MonsterType, public file: string, public tier: number, public defense: number, public attack: number, public availableInstances: number) {
+        private constructor(public type: MonsterType, public file: string, public tier: number, public defense: number,
+            public attack: number, public availableInstances: number) {
             MonsterDef.totalAvailableInstances += availableInstances;
         }
     }
 
     export class Monster extends Creature {
         private static nextId = 0;
-        public sleeping: boolean = false;
+        public stunned: boolean = false;
 
         public static createRandom(map: Map, maxTier: number, mapx: number, mapy: number): Monster {
             let m = Math.floor(Math.random() * maxTier);
@@ -40,6 +41,11 @@ namespace Catacombs {
             }
         }
 
+        public notifyKill() {
+            this.def.availableInstances++;
+            MonsterDef.totalAvailableInstances++;
+        }
+
         private constructor(
             map: Map,
             creatureId: number,
@@ -63,10 +69,10 @@ namespace Catacombs {
     }
 
     // netvoři
-    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 5);
-    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 3);
-    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 2);
-    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 1);
-    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
+    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 10);
+    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 10);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 5);
+    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 5);
+    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 2);
 
 }

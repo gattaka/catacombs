@@ -1,13 +1,14 @@
 namespace Catacombs {
 
     export enum EventType {
+        PLAYER_ACTIVATE,
         PLAYER_MOVE,
+        PLAYER_HIT,
+        PLAYER_BAR_UPDATE,
+        MONSTER_ACTIVATE,
         MONSTER_MOVE,
         ROOM_REVEALED,
-        PLAYER_BAR_UPDATE,
         ROOM_ITEM_OBTAINED,
-        PLAYER_ACTIVATE,
-        MONSTER_ACTIVATE,
         LOG,
     }
 
@@ -33,6 +34,10 @@ namespace Catacombs {
 
     export class PlayerMovePayload extends EventPayload {
         constructor(public playerId: number, public fromX: number, public fromY: number, public toX: number, public toY: number) { super(EventType.PLAYER_MOVE); }
+    }
+
+    export class PlayerHitPayload extends EventPayload {
+        constructor(public playerId: number, public success: boolean, public death: boolean) { super(EventType.PLAYER_HIT); }
     }
 
     export class MonsterMovePayload extends EventPayload {

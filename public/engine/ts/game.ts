@@ -21,7 +21,6 @@ namespace Catacombs {
         private stage: PIXI.Container;
         private gfx: Gfx;
         private proc: Proc;
-        private controls: Controls;
 
         public static getInstance() {
             if (!Game.INSTANCE) {
@@ -71,11 +70,8 @@ namespace Catacombs {
             // Processing layer
             self.proc = new Proc();
 
-            // Controls
-            self.controls = new Controls(self.proc);
-
             // GFX layer 
-            self.gfx = new Gfx(self.stage, self.controls, self.proc);
+            self.gfx = new Gfx(self.stage, self.proc);
 
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, 0));
             EventBus.getInstance().fireEvent(new StringEventPayload(EventType.LOG, "hra začala"));

@@ -102,3 +102,4 @@ Obecné
 	- nebo že by byla výhoda žaboucha, že má dva kroky?
 - štít a zbroj jsou špatně dosažitelné a skoro se nemusí použít
 	- hráči nejprve budou investovat do útoku, aby se vůbec někam dostali... zrušit?
+- žabouch by mohl mít schopnost, že při útokem mečem z něj stříká kyselina a dává 1 útok i hráči

@@ -33,7 +33,7 @@ var Catacombs;
         function Monster(map, creatureId, mapx, mapy, def) {
             var _this = _super.call(this, map, creatureId, mapx, mapy, false) || this;
             _this.def = def;
-            _this.sleeping = false;
+            _this.stunned = false;
             return _this;
         }
         Monster.createRandom = function (map, maxTier, mapx, mapy) {
@@ -59,6 +59,10 @@ var Catacombs;
                 return new Monster(map, Monster.nextId++, mapx, mapy, def);
             }
         };
+        Monster.prototype.notifyKill = function () {
+            this.def.availableInstances++;
+            MonsterDef.totalAvailableInstances++;
+        };
         Monster.prototype.innerMove = function (fromRoom, toRoom) {
             if (fromRoom)
                 delete fromRoom.monsters[this.id];
@@ -78,9 +82,9 @@ var Catacombs;
         MonsterType[MonsterType["MINOTAUR"] = 4] = "MINOTAUR";
     })(MonsterType = Catacombs.MonsterType || (Catacombs.MonsterType = {}));
     // netvoři
-    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 5);
-    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 3);
-    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 2);
-    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 1);
-    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 1);
+    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 10);
+    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 10);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 5);
+    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 5);
+    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 2);
 })(Catacombs || (Catacombs = {}));

@@ -42,7 +42,7 @@ namespace Catacombs {
             return 60;
         }
 
-        constructor(stage: PIXI.Container, private controls: Controls, private proc: Proc) {
+        constructor(stage: PIXI.Container, private proc: Proc) {
             let self = this;
 
             // Mapa
@@ -150,8 +150,8 @@ namespace Catacombs {
                 lmenuLastY = token.y + self.getUITokenImgSize();
                 lmenu.addChild(token);
                 let buyBtn = self.createBtn("Koupit za " + def.price + "c", 0xd29e36, lmenu.fixedWidth - 30 - self.getUITokenImgSize(), 30, () => {
-                    let activePlayer = self.controls.getActivePlayer();
-                    if (!self.controls.isActiveKeeper()) {
+                    let activePlayer = self.proc.getActivePlayer();
+                    if (!self.proc.isActiveKeeper()) {
                         let player = proc.players[activePlayer];
                         if (player.treasureSum >= def.price && !player.treasure[EquipmentType[def.type]] && def.availableInstances > 0) {
                             player.buy(def);
@@ -245,6 +245,7 @@ namespace Catacombs {
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_ACTIVATE, (p: NumberEventPayload): boolean => {
                     if (i != p.payload)
                         return;
+                    self.prepareUIForNext();
                     self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(player.mapx, player.mapy);
                     // TODO pokud má hráč lockpicks, může procházet mřížemi
@@ -259,7 +260,7 @@ namespace Catacombs {
                     for (let h = 0; h < player.health; h++) {
                         let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/life.png'));
                         healthUI.addChild(sprite);
-                        sprite.x = h * self.getUITokenImgSize() / 2
+                        sprite.x = h * self.getUITokenImgSize() / 2;
                     }
                 }
                 populateHealthUI();
@@ -267,7 +268,7 @@ namespace Catacombs {
                 let equipmentUI = new PIXI.Container();
                 self.playerEquipment[player.id] = equipmentUI;
                 rmenu.addChild(equipmentUI);
-                equipmentUI.x = healthUI.x + (healthUI.getBounds().width) * 3 + 10;
+                equipmentUI.x = healthUI.x + (player.health + 1) * self.getUITokenImgSize() / 2 + 10;
                 equipmentUI.y = healthUI.y;
 
                 let treasureUI = new PIXI.Container();
@@ -283,14 +284,31 @@ namespace Catacombs {
                 });
                 playerRoomSprite.on("click", () => {
                     // Nestvůra útočí na daného hráče
-                    self.hitPlayer(player, playerRoomSprite, healthUI, playerMenuIcon);
+                    self.proc.attackPlayer(player, self.proc.getActiveMonster());
+                });
+
+                EventBus.getInstance().registerConsumer(EventType.PLAYER_HIT, (p: PlayerHitPayload): boolean => {
+                    if (i != p.playerId)
+                        return;
+                    if (p.success) {
+                        self.createFadeSprite('images/life_token.png', playerRoomSprite.x, playerRoomSprite.y);
+                        healthUI.removeChildAt(healthUI.children.length - 1);
+                        if (p.death) {
+                            playerRoomSprite.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb_token.png');
+                            playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
+                        }
+                    } else {
+                        self.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
+                    }
                 });
 
                 EventBus.getInstance().registerConsumer(EventType.PLAYER_MOVE, (p: PlayerMovePayload): boolean => {
                     if (i != p.playerId)
                         return;
+                    self.prepareUIForNext();
                     let sprite = self.playerRoomSpriteById[p.playerId];
                     self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
+                    self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(p.toX, p.toY);
                     // TODO pokud má hráč lockpicks, může procházet mřížemi
                     self.enableRoomsForTravel(p.toX, p.toY, false, true);
@@ -308,7 +326,7 @@ namespace Catacombs {
                         .to({
                             x: rmenu.x,
                             y: rmenu.y + playerMenuIcon.y
-                        }, 300).call(function () {
+                        }, 300).call(() => {
                             stage.removeChild(sprite);
                             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_BAR_UPDATE, p.playerId));
                         });
@@ -362,16 +380,6 @@ namespace Catacombs {
             // aby se přidali tokeny hráčů
             self.drawRoomTokens(mapCenter, mapCenter);
 
-            EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
-                self.disablePlayersToBeHit();
-                let sprite = self.monsterRoomSpriteById[p.monsterId];
-                self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
-                self.enablePlayersToBeHit(p.toX, p.toY);
-                // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
-                self.enableRoomsForTravel(p.toX, p.toY, false, false);
-                return false;
-            });
-
             // dungeon keeper icon
             let texture = PIXI.Texture.fromImage('images/keeper.png');
             let keeperIcon = new PIXI.Sprite(texture);
@@ -380,15 +388,27 @@ namespace Catacombs {
             keeperIcon.x = 10 + self.getUITokenImgSize() / 2;
             keeperIcon.y = 10 + 2 * proc.players.length * (self.getUITokenImgSize() + 20) + self.getUITokenImgSize() / 2;
 
+            EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
+                this.prepareUIForNext();
+                let sprite = self.monsterRoomSpriteById[p.monsterId];
+                self.bounce([sprite, keeperIcon]);
+                self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
+                self.enablePlayersToBeHit(p.toX, p.toY);
+                // netvoři nemohou procházet mřížemi a nemohou objevovat místnosti
+                self.enableRoomsForTravel(p.toX, p.toY, false, false);
+                return false;
+            });
+
             EventBus.getInstance().registerConsumer(EventType.MONSTER_ACTIVATE, (p: NumberEventPayload): boolean => {
+                self.prepareUIForNext();
                 let monster: Monster = self.proc.monsters[p.payload];
                 let sprite: RoomSprite = self.monsterRoomSpriteById[p.payload];
-                if (monster.def.type == MonsterType.ZOMBIE && monster.sleeping) {
-                    monster.sleeping = false;
+                if (monster.def.type == MonsterType.ZOMBIE && monster.stunned) {
+                    monster.stunned = false;
                     let monsterUI = self.monsterRoomSpriteById[monster.id];
                     monsterUI.alpha = 1;
                     self.createFadeText("OŽIVEN", monsterUI.x, monsterUI.y);
-                    self.next();
+                    self.proc.next();
                 } else {
                     self.bounce([sprite, keeperIcon]);
                     self.enablePlayersToBeHit(monster.mapx, monster.mapy);
@@ -399,11 +419,12 @@ namespace Catacombs {
             });
 
             // Přeskočit tah btn
-            let skipBtn = self.createBtn("Přeskočit tah", 0xd29e36, rmenu.fixedWidth, 30, () => { self.next() });
+            let skipBtn = self.createBtn("Přeskočit tah", 0xd29e36, rmenu.fixedWidth, 30, () => {
+                self.proc.next();
+            });
             skipBtn.x = 10;
             skipBtn.y = keeperIcon.y + self.getUITokenImgSize() * 2;
             rmenu.addChild(skipBtn);
-
         }
 
         private bounceStop() {
@@ -433,7 +454,7 @@ namespace Catacombs {
         private initMonsterSprite(monster: Monster) {
             let sprite = this.monsterRoomSpriteById[monster.id]
             let onClick = () => {
-                this.hitMonster(monster, sprite);
+                this.attackMonster(monster, sprite);
             };
             sprite.on('click', onClick);
             sprite.on("mouseover", () => {
@@ -546,7 +567,7 @@ namespace Catacombs {
                     drawDefaultFill();
                 });
                 shape.on("click", () => {
-                    this.controls.move(movement);
+                    this.proc.move(movement);
                 });
             });
         }
@@ -564,7 +585,7 @@ namespace Catacombs {
             this.disableMonstersToBeHit();
             let room = this.proc.map.rooms.getValue(mapx, mapy);
             room.monsters.forEach((monster) => {
-                if (!monster || (monster.def.type == MonsterType.ZOMBIE && monster.sleeping))
+                if (!monster || (monster.def.type == MonsterType.ZOMBIE && monster.stunned))
                     return;
                 let monsterUI = this.monsterRoomSpriteById[monster.id];
                 monsterUI.interactive = true;
@@ -581,36 +602,22 @@ namespace Catacombs {
         /**
          * Útok na netvora
          */
-        private hitMonster(monster: Monster, monsterRoomSprite: RoomSprite) {
-            let currentPlayer = this.proc.players[this.controls.getActivePlayer()];
-            // útok je daný aktuálním útočníkem -- ten může útočit i z jiné mísnosti, 
-            // než je cílový netvor
-            let deployedAttack = currentPlayer.attack;
-            // a k tom útokem všech hráčů v místnosti, kde je netvor, na kterého útočím
-            // let monsterRoom = this.proc.map.rooms.getValue(monster.mapx, monster.mapy);
-            // monsterRoom.players.forEach((p) => {
-            //     if (p != currentPlayer && p.health > 0)
-            //         deployedAttack += p.attack;
-            // })
-
-            if (deployedAttack > monster.def.defense) {
+        private attackMonster(monster: Monster, monsterRoomSprite: RoomSprite) {
+            let result = this.proc.attackMonster(monster);
+            if (result.success) {
                 // Zombie se dá trvale zabít až když je +2 útok, 
                 // jinak se jenom omráčí a v další tahu ji může keeper znovu oživit
-                if (monster.def.type != MonsterType.ZOMBIE || deployedAttack > monster.def.defense + 1 && monster.def.type == MonsterType.ZOMBIE) {
-                    this.disableMonstersToBeHit();
+                if (result.death) {
                     this.animateObjectFadeAway(monsterRoomSprite, monsterRoomSprite.x, monsterRoomSprite.y);
                     this.unregisterSpriteFromRoom(monsterRoomSprite, monster.mapx, monster.mapy);
                     this.drawRoomTokens(monster.mapx, monster.mapy);
                     delete this.monsterRoomSpriteById[monster.id];
-                    this.proc.killMonster(monster);
                 } else {
-                    monster.sleeping = true;
                     let monsterUI = this.monsterRoomSpriteById[monster.id];
                     monsterUI.alpha = 0.5;
                     this.createFadeText("OMRÁČEN", monsterUI.x, monsterUI.y);
                 }
-                if (this.controls.action())
-                    this.enableMonstersToBeHit(monster.mapx, monster.mapy);
+                monsterRoomSprite.interactive = false;
             } else {
                 this.createFadeText("NEÚČINNÉ", monsterRoomSprite.x, monsterRoomSprite.y);
             }
@@ -635,29 +642,11 @@ namespace Catacombs {
             });
         }
 
-        private hitPlayer(player: Player, playerRoomSprite: RoomSprite, healthUI: PIXI.Container, playerMenuIcon: PIXI.Sprite) {
-            let currentMonster = this.proc.monsters[this.controls.getActiveMonster()];
-            if (currentMonster.def.attack > player.defense) {
-                this.createFadeSprite('images/life_token.png', playerRoomSprite.x, playerRoomSprite.y);
-                player.health--;
-                healthUI.removeChildAt(healthUI.children.length - 1);
-                if (player.health == 0) {
-                    playerRoomSprite.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb_token.png');
-                    playerMenuIcon.texture = PIXI.Texture.fromImage('images/player' + player.id + '_tomb.png');
-                }
-                // netvor má pouze jeden útok za tah
-                this.next();
-            } else {
-                this.createFadeText("NEÚČINNÉ", playerRoomSprite.x, playerRoomSprite.y);
-            }
-        }
-
-        private next() {
+        private prepareUIForNext() {
             this.bounceStop();
             this.disableMonstersToBeHit();
             this.disablePlayersToBeHit();
             this.disableRoomsForTravel();
-            this.controls.next();
         }
 
         private createFadeText(message: string, x: number, y: number) {

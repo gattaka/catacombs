@@ -12,14 +12,15 @@ var Catacombs;
 (function (Catacombs) {
     var EventType;
     (function (EventType) {
-        EventType[EventType["PLAYER_MOVE"] = 0] = "PLAYER_MOVE";
-        EventType[EventType["MONSTER_MOVE"] = 1] = "MONSTER_MOVE";
-        EventType[EventType["ROOM_REVEALED"] = 2] = "ROOM_REVEALED";
+        EventType[EventType["PLAYER_ACTIVATE"] = 0] = "PLAYER_ACTIVATE";
+        EventType[EventType["PLAYER_MOVE"] = 1] = "PLAYER_MOVE";
+        EventType[EventType["PLAYER_HIT"] = 2] = "PLAYER_HIT";
         EventType[EventType["PLAYER_BAR_UPDATE"] = 3] = "PLAYER_BAR_UPDATE";
-        EventType[EventType["ROOM_ITEM_OBTAINED"] = 4] = "ROOM_ITEM_OBTAINED";
-        EventType[EventType["PLAYER_ACTIVATE"] = 5] = "PLAYER_ACTIVATE";
-        EventType[EventType["MONSTER_ACTIVATE"] = 6] = "MONSTER_ACTIVATE";
-        EventType[EventType["LOG"] = 7] = "LOG";
+        EventType[EventType["MONSTER_ACTIVATE"] = 4] = "MONSTER_ACTIVATE";
+        EventType[EventType["MONSTER_MOVE"] = 5] = "MONSTER_MOVE";
+        EventType[EventType["ROOM_REVEALED"] = 6] = "ROOM_REVEALED";
+        EventType[EventType["ROOM_ITEM_OBTAINED"] = 7] = "ROOM_ITEM_OBTAINED";
+        EventType[EventType["LOG"] = 8] = "LOG";
     })(EventType = Catacombs.EventType || (Catacombs.EventType = {}));
     var EventPayload = /** @class */ (function () {
         function EventPayload(type) {
@@ -80,6 +81,18 @@ var Catacombs;
         return PlayerMovePayload;
     }(EventPayload));
     Catacombs.PlayerMovePayload = PlayerMovePayload;
+    var PlayerHitPayload = /** @class */ (function (_super) {
+        __extends(PlayerHitPayload, _super);
+        function PlayerHitPayload(playerId, success, death) {
+            var _this = _super.call(this, EventType.PLAYER_HIT) || this;
+            _this.playerId = playerId;
+            _this.success = success;
+            _this.death = death;
+            return _this;
+        }
+        return PlayerHitPayload;
+    }(EventPayload));
+    Catacombs.PlayerHitPayload = PlayerHitPayload;
     var MonsterMovePayload = /** @class */ (function (_super) {
         __extends(MonsterMovePayload, _super);
         function MonsterMovePayload(monsterId, fromX, fromY, toX, toY) {
