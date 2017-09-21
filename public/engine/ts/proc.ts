@@ -46,12 +46,10 @@ namespace Catacombs {
                 this.next();
                 return false;
             }
-            console.log("Actions = 1")
             return true;
         }
 
         private resetActions() {
-            console.log("Actions = 0");
             this.actions = 0;
         }
 
@@ -165,7 +163,7 @@ namespace Catacombs {
                     monster.stunned = true;
                 }
                 if (monster.def.type == MonsterType.SWAMPER) {
-                    this.innerAttackPlayer(currentPlayer, monster.def);
+                    this.innerAttackPlayer(currentPlayer, monster.def.attack);
                 }
                 if (currentPlayer.health > 0)
                     this.action();
@@ -177,11 +175,9 @@ namespace Catacombs {
             }
         }
 
-        private innerAttackPlayer(player: Player, monster: MonsterDef) {
-            if (monster.attack > player.defense) {
+        private innerAttackPlayer(player: Player, attack: number) {
+            if (attack > player.defense) {
                 player.health--;
-                // netvor má pouze jeden útok za tah
-                this.next();
                 EventBus.getInstance().fireEvent(new PlayerHitPayload(player.id, true, player.health == 0));
             } else {
                 EventBus.getInstance().fireEvent(new PlayerHitPayload(player.id, false, false));
@@ -190,7 +186,9 @@ namespace Catacombs {
 
         public attackPlayer(player: Player, monsterId: number) {
             let monster = this.monsters[monsterId];
-            this.innerAttackPlayer(player, monster.def);
+            this.innerAttackPlayer(player, monster.def.attack);
+            // netvor má pouze jeden útok za tah
+            this.next();
         }
     }
 }

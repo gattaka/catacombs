@@ -36,11 +36,9 @@ var Catacombs;
                 this.next();
                 return false;
             }
-            console.log("Actions = 1");
             return true;
         };
         Proc.prototype.resetActions = function () {
-            console.log("Actions = 0");
             this.actions = 0;
         };
         // Posune hráče/netvora někam
@@ -151,7 +149,7 @@ var Catacombs;
                     monster.stunned = true;
                 }
                 if (monster.def.type == Catacombs.MonsterType.SWAMPER) {
-                    this.innerAttackPlayer(currentPlayer, monster.def);
+                    this.innerAttackPlayer(currentPlayer, monster.def.attack);
                 }
                 if (currentPlayer.health > 0)
                     this.action();
@@ -163,11 +161,9 @@ var Catacombs;
                 return result;
             }
         };
-        Proc.prototype.innerAttackPlayer = function (player, monster) {
-            if (monster.attack > player.defense) {
+        Proc.prototype.innerAttackPlayer = function (player, attack) {
+            if (attack > player.defense) {
                 player.health--;
-                // netvor má pouze jeden útok za tah
-                this.next();
                 Catacombs.EventBus.getInstance().fireEvent(new Catacombs.PlayerHitPayload(player.id, true, player.health == 0));
             }
             else {
@@ -176,7 +172,9 @@ var Catacombs;
         };
         Proc.prototype.attackPlayer = function (player, monsterId) {
             var monster = this.monsters[monsterId];
-            this.innerAttackPlayer(player, monster.def);
+            this.innerAttackPlayer(player, monster.def.attack);
+            // netvor má pouze jeden útok za tah
+            this.next();
         };
         Proc.PLAYERS_COUNT = 4;
         return Proc;
