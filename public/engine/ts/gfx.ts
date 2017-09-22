@@ -153,8 +153,9 @@ namespace Catacombs {
                     let activePlayer = self.proc.getActivePlayer();
                     if (!self.proc.isActiveKeeper()) {
                         let player = proc.players[activePlayer];
-                        if (player.treasureSum >= def.price && !player.treasure[EquipmentType[def.type]] && def.availableInstances > 0) {
-                            player.buy(def);
+                        if (player.buy(def) && def.type == EquipmentType.LOCKPICK) {
+                            // Pokud má hráč lockpick, může procházet mřížemi
+                            self.enableRoomsForTravel(player.mapx, player.mapy, player.lockpick, true);
                         }
                     }
                 });
@@ -248,8 +249,8 @@ namespace Catacombs {
                     self.prepareUIForNext();
                     self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(player.mapx, player.mapy);
-                    // TODO pokud má hráč lockpicks, může procházet mřížemi
-                    self.enableRoomsForTravel(player.mapx, player.mapy, false, true);
+                    // Pokud má hráč lockpick, může procházet mřížemi
+                    self.enableRoomsForTravel(player.mapx, player.mapy, player.lockpick, true);
                 });
 
                 let healthUI = new PIXI.Container();
@@ -310,8 +311,8 @@ namespace Catacombs {
                     self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                     self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(p.toX, p.toY);
-                    // TODO pokud má hráč lockpicks, může procházet mřížemi
-                    self.enableRoomsForTravel(p.toX, p.toY, false, true);
+                    // Pokud má hráč lockpick, může procházet mřížemi
+                    self.enableRoomsForTravel(p.toX, p.toY, player.lockpick, true);
                     return false;
                 });
 
@@ -532,20 +533,20 @@ namespace Catacombs {
             this.drawRoomTokens(toX, toY);
         }
 
-        private enableRoomsForTravel(mapx: number, mapy: number, ignoreBars: boolean, canExplore: boolean) {
+        private enableRoomsForTravel(mapx: number, mapy: number, lockpick: boolean, canExplore: boolean) {
             let self = this;
             this.disableRoomsForTravel();
             let directions = [
-                [-1, 0, 0b0001, 0b0100],
-                [1, 0, 0b0100, 0b0001],
-                [0, -1, 0b1000, 0b0010],
-                [0, 1, 0b0010, 0b1000]
+                [0, -1, 0b1000, 0b0010], // N
+                [1, 0, 0b0100, 0b0001], // E
+                [0, 1, 0b0010, 0b1000], // S
+                [-1, 0, 0b0001, 0b0100] // W
             ];
             directions.forEach((direction) => {
                 let movement = new Movement(direction[2], direction[3], mapx, mapy, mapx + direction[0], mapy + direction[1]);
                 let roomCellContainer = this.roomCellContainers.getValue(movement.toX, movement.toY);
 
-                if (!this.proc.map.canTravel(movement, ignoreBars, canExplore))
+                if (!this.proc.map.canTravel(movement, lockpick, canExplore))
                     return;
                 let shape = new PIXI.Graphics();
                 let drawFill = (color) => {

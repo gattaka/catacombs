@@ -9,7 +9,7 @@ var Catacombs;
             this.noTreasureCases = 0;
             this.center = Math.floor(this.sideSize / 2);
             var def = RoomDef.startRoom();
-            var room = new Room(def, this.center, this.center, def.exits, 0);
+            var room = new Room(def, this.center, this.center, def.exits, def.lockpickExits, 0);
             this.rooms.setValue(this.center, this.center, room);
         }
         Map.prototype.revealMapPiece = function (mapx, mapy, direction) {
@@ -18,14 +18,16 @@ var Catacombs;
             if (!roomDef)
                 return;
             var exits = roomDef.exits;
+            var lockpickExits = roomDef.lockpickExits;
             var rotation = 0;
             for (var i = 0; i < 4; i++) {
                 if (direction & exits)
                     break;
                 rotation += Math.PI / 2;
                 exits = Catacombs.Utils.scr(exits);
+                lockpickExits = Catacombs.Utils.scr(lockpickExits);
             }
-            var room = new Room(roomDef, mapx, mapy, exits, rotation);
+            var room = new Room(roomDef, mapx, mapy, exits, lockpickExits, rotation);
             if (Math.random() * (Catacombs.MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 var centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
                 // snižuje tier dle blízkosti ke středu
@@ -51,39 +53,39 @@ var Catacombs;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.TupleEventPayload(Catacombs.EventType.ROOM_REVEALED, mapx, mapy));
             return room;
         };
-        Map.prototype.canTravel = function (movement, ignoreBars, canReveal) {
+        Map.prototype.canTravel = function (movement, lockpick, canReveal) {
             var fromRoom = this.proc.map.rooms.getValue(movement.fromX, movement.fromY);
             // je možné tímto směrem odejít z počáteční místnosti?
-            if (!(movement.sideFrom & fromRoom.rotatedExits)) {
-                return false;
-            }
-            // je cílová místnost v mezích mapy?
-            if (movement.toX < 0 || movement.toX >= this.proc.map.sideSize || movement.toY < 0 || movement.toY >= this.proc.map.sideSize)
-                return false;
-            // existuje cílová místnost?
-            var toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
-            if (toRoom) {
-                // je možné tímto směrem vejít do cílové místnosti?
-                if (!(movement.sideTo & toRoom.rotatedExits)) {
+            if ((movement.sideFrom & fromRoom.rotatedExits) || lockpick && (movement.sideFrom & fromRoom.rotatedLockpickExits)) {
+                // je cílová místnost v mezích mapy?
+                if (movement.toX < 0 || movement.toX >= this.proc.map.sideSize || movement.toY < 0 || movement.toY >= this.proc.map.sideSize)
                     return false;
+                // existuje cílová místnost?
+                var toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
+                if (toRoom) {
+                    // je možné tímto směrem vejít do cílové místnosti?
+                    if ((movement.sideTo & toRoom.rotatedExits) || lockpick && (movement.sideTo & toRoom.rotatedLockpickExits))
+                        return true;
+                    else
+                        return false;
                 }
-                else
-                    return true;
+                else {
+                    // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
+                    return canReveal;
+                }
             }
-            else {
-                // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
-                return canReveal;
-            }
+            return false;
         };
         return Map;
     }());
     Catacombs.Map = Map;
     var Room = /** @class */ (function () {
-        function Room(def, mapx, mapy, rotatedExits, rotation) {
+        function Room(def, mapx, mapy, rotatedExits, rotatedLockpickExits, rotation) {
             this.def = def;
             this.mapx = mapx;
             this.mapy = mapy;
             this.rotatedExits = rotatedExits;
+            this.rotatedLockpickExits = rotatedLockpickExits;
             this.rotation = rotation;
             this.players = new Array();
             this.monsters = new Array();
@@ -106,10 +108,11 @@ var Catacombs;
     }());
     Catacombs.Movement = Movement;
     var RoomDef = /** @class */ (function () {
-        function RoomDef(tex, type, exits, availableInstances) {
+        function RoomDef(tex, type, exits, lockpickExits, availableInstances) {
             this.tex = tex;
             this.type = type;
             this.exits = exits;
+            this.lockpickExits = lockpickExits;
             this.availableInstances = availableInstances;
         }
         RoomDef.startRoom = function () {
@@ -132,8 +135,8 @@ var Catacombs;
             alert("Nepodařilo se získat náhodnou místnost - nejsou volné karty!");
             return null;
         };
-        RoomDef.register = function (type, exits, availableInstances) {
-            RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, availableInstances);
+        RoomDef.register = function (type, exits, lockpickExits, availableInstances) {
+            RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, lockpickExits, availableInstances);
             RoomDef.totalAvailableInstances += availableInstances;
         };
         RoomDef.totalAvailableInstances = 0;
@@ -147,14 +150,16 @@ var Catacombs;
     // takže je hrací pole 9x9 se středovým polem
     // při délce dílku 4 cm to je hrací plocha 36x36cm
     // je možné změnšit na 7x7 apod.
-    RoomDef.register(0, 5, 8);
-    RoomDef.register(1, 10, 8);
-    RoomDef.register(2, 10, 8);
-    RoomDef.register(3, 15, 9);
-    RoomDef.register(4, 11, 8);
-    RoomDef.register(5, 14, 8);
-    RoomDef.register(6, 10, 8);
-    RoomDef.register(7, 14, 8);
-    RoomDef.register(8, 7, 8);
-    RoomDef.register(9, 13, 8);
+    // 1 = exit, 0 = zeď
+    // pořadí masky N-E-S-W
+    RoomDef.register(0, 5, 5, 8);
+    RoomDef.register(1, 10, 11, 8);
+    RoomDef.register(2, 10, 14, 8);
+    RoomDef.register(3, 15, 15, 9);
+    RoomDef.register(4, 11, 11, 8);
+    RoomDef.register(5, 14, 14, 8);
+    RoomDef.register(6, 10, 10, 8);
+    RoomDef.register(7, 14, 15, 8);
+    RoomDef.register(8, 7, 7, 8);
+    RoomDef.register(9, 13, 13, 8);
 })(Catacombs || (Catacombs = {}));

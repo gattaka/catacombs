@@ -137,8 +137,9 @@ var Catacombs;
                     var activePlayer = self.proc.getActivePlayer();
                     if (!self.proc.isActiveKeeper()) {
                         var player = proc.players[activePlayer];
-                        if (player.treasureSum >= def.price && !player.treasure[Catacombs.EquipmentType[def.type]] && def.availableInstances > 0) {
-                            player.buy(def);
+                        if (player.buy(def) && def.type == Catacombs.EquipmentType.LOCKPICK) {
+                            // Pokud má hráč lockpick, může procházet mřížemi
+                            self.enableRoomsForTravel(player.mapx, player.mapy, player.lockpick, true);
                         }
                     }
                 });
@@ -222,8 +223,8 @@ var Catacombs;
                     self.prepareUIForNext();
                     self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(player.mapx, player.mapy);
-                    // TODO pokud má hráč lockpicks, může procházet mřížemi
-                    self.enableRoomsForTravel(player.mapx, player.mapy, false, true);
+                    // Pokud má hráč lockpick, může procházet mřížemi
+                    self.enableRoomsForTravel(player.mapx, player.mapy, player.lockpick, true);
                 });
                 var healthUI = new PIXI.Container();
                 rmenu.addChild(healthUI);
@@ -279,8 +280,8 @@ var Catacombs;
                     self.moveSprite(sprite, p.fromX, p.fromY, p.toX, p.toY);
                     self.bounce([playerRoomSprite, playerMenuIcon]);
                     self.enableMonstersToBeHit(p.toX, p.toY);
-                    // TODO pokud má hráč lockpicks, může procházet mřížemi
-                    self.enableRoomsForTravel(p.toX, p.toY, false, true);
+                    // Pokud má hráč lockpick, může procházet mřížemi
+                    self.enableRoomsForTravel(p.toX, p.toY, player.lockpick, true);
                     return false;
                 });
                 Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.ROOM_ITEM_OBTAINED, function (p) {
@@ -497,20 +498,20 @@ var Catacombs;
             this.drawRoomTokens(fromX, fromY);
             this.drawRoomTokens(toX, toY);
         };
-        Gfx.prototype.enableRoomsForTravel = function (mapx, mapy, ignoreBars, canExplore) {
+        Gfx.prototype.enableRoomsForTravel = function (mapx, mapy, lockpick, canExplore) {
             var _this = this;
             var self = this;
             this.disableRoomsForTravel();
             var directions = [
-                [-1, 0, 1, 4],
-                [1, 0, 4, 1],
                 [0, -1, 8, 2],
-                [0, 1, 2, 8]
+                [1, 0, 4, 1],
+                [0, 1, 2, 8],
+                [-1, 0, 1, 4] // W
             ];
             directions.forEach(function (direction) {
                 var movement = new Catacombs.Movement(direction[2], direction[3], mapx, mapy, mapx + direction[0], mapy + direction[1]);
                 var roomCellContainer = _this.roomCellContainers.getValue(movement.toX, movement.toY);
-                if (!_this.proc.map.canTravel(movement, ignoreBars, canExplore))
+                if (!_this.proc.map.canTravel(movement, lockpick, canExplore))
                     return;
                 var shape = new PIXI.Graphics();
                 var drawFill = function (color) {

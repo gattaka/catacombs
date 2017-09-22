@@ -36,12 +36,12 @@ namespace Catacombs {
     }
 
     export enum EquipmentType {
-        LANTERN, LOCKPICKS, PICKAXE, SWORD, SHIELD, ARMOR, POTION, CROSSBOW
+        LANTERN, LOCKPICK, PICKAXE, SWORD, SHIELD, ARMOR, POTION, CROSSBOW
     }
 
     // položky
     EquipmentDef.register(EquipmentType.POTION, "potion_token", 4, 99999);
-    EquipmentDef.register(EquipmentType.LOCKPICKS, "lockpicks_token", 4, 2);
+    EquipmentDef.register(EquipmentType.LOCKPICK, "lockpicks_token", 4, 2);
     EquipmentDef.register(EquipmentType.SWORD, "sword_token", 4, 4);
     EquipmentDef.register(EquipmentType.CROSSBOW, "crossbow_token", 8, 4);
     EquipmentDef.register(EquipmentType.SHIELD, "shield_token", 8, 2);

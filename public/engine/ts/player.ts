@@ -20,6 +20,7 @@ namespace Catacombs {
         }
 
         public treasureSum = 0;
+        public lockpick = false;
         public attack = 1;
         public defense = 0;
         public treasure: { [type: string]: TreasureItem } = {};
@@ -73,10 +74,12 @@ namespace Catacombs {
         }
 
 
-        buy(def: EquipmentDef) {
-            // už tohle vybavení má
-            if (this.equipment[EquipmentType[def.type]] || (def.type == EquipmentType.POTION && this.health == Player.MAX_HEALTH))
-                return;
+        buy(def: EquipmentDef): boolean {
+            if (this.equipment[EquipmentType[def.type]]
+                || def.type == EquipmentType.POTION && this.health == Player.MAX_HEALTH
+                || def.availableInstances <= 0
+                || this.treasureSum < def.price)
+                return false;
             this.treasureSum -= def.price;
             let toPay = def.price;
             let item;
@@ -120,17 +123,21 @@ namespace Catacombs {
                     this.attack = 2;
                     this.equipment[EquipmentType[def.type]] = def;
                     break;
-                    case EquipmentType.CROSSBOW:
+                case EquipmentType.CROSSBOW:
                     this.attack = 3;
                     this.equipment[EquipmentType[def.type]] = def;
                     break;
                 case EquipmentType.POTION:
                     this.health++;
                     break;
+                case EquipmentType.LOCKPICK:
+                    this.lockpick = true;
+                    break;
             }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Equipment.create(def);
             EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_BAR_UPDATE, this.id));
+            return true;
         }
 
     }

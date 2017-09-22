@@ -23,6 +23,7 @@ var Catacombs;
         function Player(map, playerId) {
             var _this = _super.call(this, map, playerId, map.center, map.center, true) || this;
             _this.treasureSum = 0;
+            _this.lockpick = false;
             _this.attack = 1;
             _this.defense = 0;
             _this.treasure = {};
@@ -77,9 +78,11 @@ var Catacombs;
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_BAR_UPDATE, this.id));
         };
         Player.prototype.buy = function (def) {
-            // už tohle vybavení má
-            if (this.equipment[Catacombs.EquipmentType[def.type]] || (def.type == Catacombs.EquipmentType.POTION && this.health == Player.MAX_HEALTH))
-                return;
+            if (this.equipment[Catacombs.EquipmentType[def.type]]
+                || def.type == Catacombs.EquipmentType.POTION && this.health == Player.MAX_HEALTH
+                || def.availableInstances <= 0
+                || this.treasureSum < def.price)
+                return false;
             this.treasureSum -= def.price;
             var toPay = def.price;
             var item;
@@ -131,10 +134,14 @@ var Catacombs;
                 case Catacombs.EquipmentType.POTION:
                     this.health++;
                     break;
+                case Catacombs.EquipmentType.LOCKPICK:
+                    this.lockpick = true;
+                    break;
             }
             // nemám co s tou instancí dělat, potřebuju, aby se snížily počty karet
             Catacombs.Equipment.create(def);
             Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_BAR_UPDATE, this.id));
+            return true;
         };
         Player.MAX_HEALTH = 4;
         Player.playersCount = 0;

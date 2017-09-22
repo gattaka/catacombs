@@ -11,7 +11,7 @@ namespace Catacombs {
         constructor(public sideSize: number, private proc: Proc) {
             this.center = Math.floor(this.sideSize / 2);
             let def = RoomDef.startRoom();
-            let room = new Room(def, this.center, this.center, def.exits, 0);
+            let room = new Room(def, this.center, this.center, def.exits, def.lockpickExits, 0);
             this.rooms.setValue(this.center, this.center, room);
         }
 
@@ -21,14 +21,16 @@ namespace Catacombs {
             if (!roomDef)
                 return;
             let exits = roomDef.exits;
+            let lockpickExits = roomDef.lockpickExits;
             let rotation = 0;
             for (let i = 0; i < 4; i++) {
                 if (direction & exits)
                     break;
                 rotation += Math.PI / 2;
                 exits = Utils.scr(exits);
+                lockpickExits = Utils.scr(lockpickExits);
             }
-            let room = new Room(roomDef, mapx, mapy, exits, rotation);
+            let room = new Room(roomDef, mapx, mapy, exits, lockpickExits, rotation);
 
             if (Math.random() * (MonsterDef.totalAvailableInstances + this.noMonsterCases) > this.noMonsterCases) {
                 let centerDist = Math.max(Math.abs(mapx - this.center), Math.abs(mapy - this.center));
@@ -57,28 +59,26 @@ namespace Catacombs {
             return room;
         }
 
-        public canTravel(movement: Movement, ignoreBars: boolean, canReveal: boolean): boolean {
+        public canTravel(movement: Movement, lockpick: boolean, canReveal: boolean): boolean {
             let fromRoom = this.proc.map.rooms.getValue(movement.fromX, movement.fromY);
 
             // je možné tímto směrem odejít z počáteční místnosti?
-            if (!(movement.sideFrom & fromRoom.rotatedExits)) {
-                return false;
-            }
-            // je cílová místnost v mezích mapy?
-            if (movement.toX < 0 || movement.toX >= this.proc.map.sideSize || movement.toY < 0 || movement.toY >= this.proc.map.sideSize)
-                return false;
-            // existuje cílová místnost?
-            let toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
-            if (toRoom) {
-                // je možné tímto směrem vejít do cílové místnosti?
-                if (!(movement.sideTo & toRoom.rotatedExits)) {
+            if ((movement.sideFrom & fromRoom.rotatedExits) || lockpick && (movement.sideFrom & fromRoom.rotatedLockpickExits)) {
+                // je cílová místnost v mezích mapy?
+                if (movement.toX < 0 || movement.toX >= this.proc.map.sideSize || movement.toY < 0 || movement.toY >= this.proc.map.sideSize)
                     return false;
-                } else
-                    return true;
-            } else {
-                // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
-                return canReveal;
+                // existuje cílová místnost?
+                let toRoom = this.proc.map.rooms.getValue(movement.toX, movement.toY);
+                if (toRoom) {
+                    // je možné tímto směrem vejít do cílové místnosti?
+                    if ((movement.sideTo & toRoom.rotatedExits) || lockpick && (movement.sideTo & toRoom.rotatedLockpickExits))
+                        return true; else return false;
+                } else {
+                    // ok, neexistuje, tak tam lze cestovat... pokud je to povolené
+                    return canReveal;
+                }
             }
+            return false;
         }
     }
 
@@ -86,7 +86,7 @@ namespace Catacombs {
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
         public treasure: Treasure;
-        constructor(public def: RoomDef, public mapx: number, public mapy: number, public rotatedExits: number, public rotation: number) {
+        constructor(public def: RoomDef, public mapx: number, public mapy: number, public rotatedExits: number, public rotatedLockpickExits: number, public rotation: number) {
             def.availableInstances--;
             RoomDef.totalAvailableInstances--;
         }
@@ -128,12 +128,12 @@ namespace Catacombs {
             return null;
         }
 
-        public static register(type: number, exits: number, availableInstances: number) {
-            RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, availableInstances);
+        public static register(type: number, exits: number, lockpickExits: number, availableInstances: number) {
+            RoomDef.roomDefs[type] = new RoomDef(PIXI.Texture.fromImage('images/map' + type + '.png'), type, exits, lockpickExits, availableInstances);
             RoomDef.totalAvailableInstances += availableInstances;
         }
 
-        private constructor(public tex: PIXI.Texture, public type: number, public exits: number, public availableInstances: number) { }
+        private constructor(public tex: PIXI.Texture, public type: number, public exits: number, public lockpickExits: number, public availableInstances: number) { }
     }
 
     // Místnosti
@@ -142,15 +142,17 @@ namespace Catacombs {
     // takže je hrací pole 9x9 se středovým polem
     // při délce dílku 4 cm to je hrací plocha 36x36cm
     // je možné změnšit na 7x7 apod.
-    RoomDef.register(0, 0b0101, 8);
-    RoomDef.register(1, 0b1010, 8);
-    RoomDef.register(2, 0b1010, 8);
-    RoomDef.register(3, 0b1111, 9);
-    RoomDef.register(4, 0b1011, 8);
-    RoomDef.register(5, 0b1110, 8);
-    RoomDef.register(6, 0b1010, 8);
-    RoomDef.register(7, 0b1110, 8);
-    RoomDef.register(8, 0b0111, 8);
-    RoomDef.register(9, 0b1101, 8);
+    // 1 = exit, 0 = zeď
+    // pořadí masky N-E-S-W
+    RoomDef.register(0, 0b0101, 0b0101, 8);
+    RoomDef.register(1, 0b1010, 0b1011, 8);
+    RoomDef.register(2, 0b1010, 0b1110, 8);
+    RoomDef.register(3, 0b1111, 0b1111, 9);
+    RoomDef.register(4, 0b1011, 0b1011, 8);
+    RoomDef.register(5, 0b1110, 0b1110, 8);
+    RoomDef.register(6, 0b1010, 0b1010, 8);
+    RoomDef.register(7, 0b1110, 0b1111, 8);
+    RoomDef.register(8, 0b0111, 0b0111, 8);
+    RoomDef.register(9, 0b1101, 0b1101, 8);
 
 }
