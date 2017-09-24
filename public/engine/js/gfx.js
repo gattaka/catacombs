@@ -365,18 +365,18 @@ var Catacombs;
             rmenu.addChild(keeperIcon);
             keeperIcon.x = 10 + self.getUITokenImgSize() / 2;
             keeperIcon.y = 10 + 2 * proc.players.length * (self.getUITokenImgSize() + 20) + self.getUITokenImgSize() / 2;
-            var soulsUI = new PIXI.Container();
-            rmenu.addChild(soulsUI);
-            soulsUI.x = keeperIcon.x + self.getUITokenImgSize() / 2 + 10;
-            soulsUI.y = keeperIcon.y - self.getUITokenImgSize() / 2;
-            var populateSoulsUI = function () {
-                for (var h = 0; h < self.proc.souls; h++) {
-                    var sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/soul.png'));
-                    soulsUI.addChild(sprite);
-                    sprite.x = h * self.getUITokenImgSize() / 2;
-                }
-            };
-            populateSoulsUI();
+            // let soulsUI = new PIXI.Container();
+            // rmenu.addChild(soulsUI);
+            // soulsUI.x = keeperIcon.x + self.getUITokenImgSize() / 2 + 10;
+            // soulsUI.y = keeperIcon.y - self.getUITokenImgSize() / 2;
+            // let populateSoulsUI = () => {
+            //     for (let h = 0; h < self.proc.souls; h++) {
+            //         let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/soul.png'));
+            //         soulsUI.addChild(sprite);
+            //         sprite.x = h * self.getUITokenImgSize() / 2;
+            //     }
+            // }
+            // populateSoulsUI();
             Catacombs.EventBus.getInstance().registerConsumer(Catacombs.EventType.MONSTER_MOVE, function (p) {
                 _this.prepareUIForNext();
                 var sprite = self.monsterRoomSpriteById[p.monsterId];
