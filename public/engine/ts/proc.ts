@@ -6,6 +6,7 @@ namespace Catacombs {
         public map: Map;
         public players = new Array<Player>();
         public monsters = new Array<Monster>();
+        public souls = 4;
 
         private activePlayer = 0;
         private activeMonster = undefined;

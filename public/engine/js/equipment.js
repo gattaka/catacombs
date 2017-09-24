@@ -54,6 +54,5 @@ var Catacombs;
     EquipmentDef.register(EquipmentType.LOCKPICK, "lockpicks_token", 4, 2);
     EquipmentDef.register(EquipmentType.SWORD, "sword_token", 4, 4);
     EquipmentDef.register(EquipmentType.CROSSBOW, "crossbow_token", 8, 4);
-    EquipmentDef.register(EquipmentType.SHIELD, "shield_token", 8, 2);
     EquipmentDef.register(EquipmentType.ARMOR, "armor_token", 8, 3);
 })(Catacombs || (Catacombs = {}));

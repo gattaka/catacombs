@@ -71,7 +71,7 @@ namespace Catacombs {
     // netvoři
     MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 10);
     MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 10);
-    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 2, 5);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 1, 8);
     MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 5);
     MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 2);
 

@@ -33,6 +33,10 @@ var Catacombs;
         TreasureDef.getRandom = function () {
             var m = Math.floor(Math.random() * TreasureDef.defsPool.length);
             var def = TreasureDef.defsPool[m];
+            if (!def) {
+                alert("Nepodařilo se získat náhodnou odměnu - nejsou volné karty!");
+                return null;
+            }
             TreasureDef.defsPool.splice(m, 1);
             return def;
         };
@@ -53,15 +57,9 @@ var Catacombs;
             return this.create(map, mapx, mapy, TreasureDef.getRandom());
         };
         Treasure.create = function (map, mapx, mapy, def) {
-            if (def.availableInstances == 0) {
-                alert("Nepodařilo se získat náhodnou odměnu - nejsou volné karty!");
-                return null;
-            }
-            else {
-                def.availableInstances--;
-                TreasureDef.totalAvailableInstances--;
-                Treasure.treasureCount++;
-            }
+            def.availableInstances--;
+            TreasureDef.totalAvailableInstances--;
+            Treasure.treasureCount++;
             return new Treasure(map, Treasure.treasureCount, mapx, mapy, def);
         };
         Treasure.treasureCount = 0;
@@ -84,10 +82,10 @@ var Catacombs;
         TreasureType[TreasureType["YELLOW_CHEST"] = 11] = "YELLOW_CHEST";
     })(TreasureType = Catacombs.TreasureType || (Catacombs.TreasureType = {}));
     // položky
-    TreasureDef.register(TreasureType.COIN, "coin", "zlatou minci", 2, 15);
-    TreasureDef.register(TreasureType.CUP, "cup", "zlatý pohár", 2, 10);
-    TreasureDef.register(TreasureType.GEMS, "gems", "drahokamy", 4, 5);
-    TreasureDef.register(TreasureType.AMULET, "amulet", "amulet", 4, 2);
+    TreasureDef.register(TreasureType.COIN, "coin", "zlatou minci", 2, 20);
+    TreasureDef.register(TreasureType.CUP, "cup", "zlatý pohár", 2, 20);
+    TreasureDef.register(TreasureType.GEMS, "gems", "drahokamy", 4, 10);
+    TreasureDef.register(TreasureType.AMULET, "amulet", "amulet", 4, 10);
     // TreasureDef.register(TreasureType.BLUE_KEY, "blue_key", "modrý klíč", 0, 1, false);
     // TreasureDef.register(TreasureType.RED_KEY, "red_key", "červený klíč", 0, 1, false);
     // TreasureDef.register(TreasureType.GREEN_KEY, "green_key", "zelený klíč", 0, 1, false);

@@ -98,6 +98,7 @@ namespace Catacombs {
                 return false;
             });
 
+            let center = Math.floor(proc.map.sideSize / 2);
             for (let mapy = 0; mapy < proc.map.sideSize; mapy++) {
                 for (let mapx = 0; mapx < proc.map.sideSize; mapx++) {
                     let x = mapx * self.getRoomImgSize();
@@ -111,7 +112,22 @@ namespace Catacombs {
                         cont.addChild(sprite);
                     } else {
                         let shape = new PIXI.Graphics();
-                        shape.beginFill(0x222222);
+                        let cx = Math.abs(mapx - center);
+                        let cy = Math.abs(mapy - center);
+                        let distance = Math.max(cx, cy);
+                        switch (distance) {
+                            case 0:
+                            case 1:
+                            case 2:
+                                shape.beginFill(0x223322);
+                                break;
+                            case 3:
+                                shape.beginFill(0x333322);
+                                break;
+                            case 4:
+                                shape.beginFill(0x332222);
+                                break;
+                        }
                         shape.lineStyle(1, 0x000000);
                         shape.drawRect(1, 1, self.getRoomImgSize() - 2, self.getRoomImgSize() - 2);
                         cont.addChild(shape);
@@ -388,6 +404,19 @@ namespace Catacombs {
             rmenu.addChild(keeperIcon);
             keeperIcon.x = 10 + self.getUITokenImgSize() / 2;
             keeperIcon.y = 10 + 2 * proc.players.length * (self.getUITokenImgSize() + 20) + self.getUITokenImgSize() / 2;
+
+            let soulsUI = new PIXI.Container();
+            rmenu.addChild(soulsUI);
+            soulsUI.x = keeperIcon.x + self.getUITokenImgSize() / 2 + 10;
+            soulsUI.y = keeperIcon.y - self.getUITokenImgSize() / 2;
+            let populateSoulsUI = () => {
+                for (let h = 0; h < self.proc.souls; h++) {
+                    let sprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/soul.png'));
+                    soulsUI.addChild(sprite);
+                    sprite.x = h * self.getUITokenImgSize() / 2;
+                }
+            }
+            populateSoulsUI();
 
             EventBus.getInstance().registerConsumer(EventType.MONSTER_MOVE, (p: MonsterMovePayload): boolean => {
                 this.prepareUIForNext();

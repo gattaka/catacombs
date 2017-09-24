@@ -4,6 +4,7 @@ var Catacombs;
         function Proc() {
             this.players = new Array();
             this.monsters = new Array();
+            this.souls = 4;
             this.activePlayer = 0;
             this.activeMonster = undefined;
             this.activeKeeper = false;
