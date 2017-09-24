@@ -8,8 +8,8 @@ var Catacombs;
             this.activePlayer = 0;
             this.activeMonster = undefined;
             this.activeKeeper = false;
-            // počet posunů/útoků které za tento tah hráč/netvor udělal
-            this.actions = 0;
+            // počet posunů/útoků které za tento tah může hráč/netvor udělat
+            this.actions = 2;
             this.map = new Catacombs.Map(9, this);
             this.players = new Array();
             for (var i = 0; i < Proc.PLAYERS_COUNT; i++) {
@@ -32,15 +32,15 @@ var Catacombs;
          * pokud tím byl ukončen tah, vrátí false, jinak true
          */
         Proc.prototype.action = function () {
-            this.actions++;
-            if (this.actions > 1) {
+            this.actions--;
+            if (this.actions == 0) {
                 this.next();
                 return false;
             }
             return true;
         };
-        Proc.prototype.resetActions = function () {
-            this.actions = 0;
+        Proc.prototype.resetActions = function (actions) {
+            this.actions = actions;
         };
         // Posune hráče/netvora někam
         Proc.prototype.move = function (movement) {
@@ -59,14 +59,15 @@ var Catacombs;
          * vrať true, protože je možné pokračovat dalším hráčem
          */
         Proc.prototype.nextMonster = function () {
-            this.resetActions();
             var lastMonster = this.activeMonster;
             // hledej dalšího netvora
             for (var i = 0; i < this.monsters.length; i++) {
                 this.activeMonster = this.activeMonster == undefined ? 0 : (this.activeMonster + 1) % this.monsters.length;
                 if (lastMonster == undefined || this.activeMonster > lastMonster) {
+                    var monster = this.monsters[this.activeMonster];
                     if (this.monsters[this.activeMonster]) {
                         // ok, mám ho
+                        this.resetActions(monster.def.actions);
                         Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.MONSTER_ACTIVATE, this.activeMonster));
                         return false;
                     }
@@ -97,6 +98,7 @@ var Catacombs;
             return true;
         };
         Proc.prototype.activatePlayer = function () {
+            this.resetActions(2);
             // zkontroluj, že hráč stále žije (mohlo se stát, že ho keeper mezitím zabil)
             if (this.players[this.activePlayer].health > 0)
                 Catacombs.EventBus.getInstance().fireEvent(new Catacombs.NumberEventPayload(Catacombs.EventType.PLAYER_ACTIVATE, this.activePlayer));
@@ -108,7 +110,6 @@ var Catacombs;
             this.activatePlayer();
         };
         Proc.prototype.next = function () {
-            this.resetActions();
             if (this.activeKeeper) {
                 if (this.nextMonster()) {
                     this.activeKeeper = false;
@@ -150,7 +151,7 @@ var Catacombs;
                     monster.stunned = true;
                 }
                 if (monster.def.type == Catacombs.MonsterType.SWAMPER) {
-                    this.innerAttackPlayer(currentPlayer, monster.def.attack);
+                    this.innerAttackPlayer(currentPlayer, 2);
                 }
                 if (currentPlayer.health > 0)
                     this.action();
@@ -174,8 +175,7 @@ var Catacombs;
         Proc.prototype.attackPlayer = function (player, monsterId) {
             var monster = this.monsters[monsterId];
             this.innerAttackPlayer(player, monster.def.attack);
-            // netvor má pouze jeden útok za tah
-            this.next();
+            this.action();
         };
         Proc.PLAYERS_COUNT = 4;
         return Proc;

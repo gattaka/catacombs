@@ -12,8 +12,8 @@ namespace Catacombs {
         private activeMonster = undefined;
         private activeKeeper = false;
 
-        // počet posunů/útoků které za tento tah hráč/netvor udělal
-        private actions = 0;
+        // počet posunů/útoků které za tento tah může hráč/netvor udělat
+        private actions = 2;
 
         constructor() {
             this.map = new Map(9, this);
@@ -42,16 +42,16 @@ namespace Catacombs {
          * pokud tím byl ukončen tah, vrátí false, jinak true
          */
         action() {
-            this.actions++;
-            if (this.actions > 1) {
+            this.actions--;
+            if (this.actions == 0) {
                 this.next();
                 return false;
             }
             return true;
         }
 
-        private resetActions() {
-            this.actions = 0;
+        private resetActions(actions: number) {
+            this.actions = actions;
         }
 
         // Posune hráče/netvora někam
@@ -71,14 +71,15 @@ namespace Catacombs {
          * vrať true, protože je možné pokračovat dalším hráčem
          */
         private nextMonster(): boolean {
-            this.resetActions();
             let lastMonster = this.activeMonster;
             // hledej dalšího netvora
             for (let i = 0; i < this.monsters.length; i++) {
                 this.activeMonster = this.activeMonster == undefined ? 0 : (this.activeMonster + 1) % this.monsters.length;
                 if (lastMonster == undefined || this.activeMonster > lastMonster) {
+                    let monster = this.monsters[this.activeMonster];
                     if (this.monsters[this.activeMonster]) {
                         // ok, mám ho
+                        this.resetActions(monster.def.actions);
                         EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.MONSTER_ACTIVATE, this.activeMonster));
                         return false;
                     }
@@ -110,6 +111,7 @@ namespace Catacombs {
         }
 
         private activatePlayer() {
+            this.resetActions(2);
             // zkontroluj, že hráč stále žije (mohlo se stát, že ho keeper mezitím zabil)
             if (this.players[this.activePlayer].health > 0)
                 EventBus.getInstance().fireEvent(new NumberEventPayload(EventType.PLAYER_ACTIVATE, this.activePlayer));
@@ -122,8 +124,7 @@ namespace Catacombs {
             this.activatePlayer();
         }
 
-        next() {
-            this.resetActions();
+        next() {            
             if (this.activeKeeper) {
                 if (this.nextMonster()) {
                     this.activeKeeper = false;
@@ -164,7 +165,7 @@ namespace Catacombs {
                     monster.stunned = true;
                 }
                 if (monster.def.type == MonsterType.SWAMPER) {
-                    this.innerAttackPlayer(currentPlayer, monster.def.attack);
+                    this.innerAttackPlayer(currentPlayer, 2);
                 }
                 if (currentPlayer.health > 0)
                     this.action();
@@ -188,8 +189,7 @@ namespace Catacombs {
         public attackPlayer(player: Player, monsterId: number) {
             let monster = this.monsters[monsterId];
             this.innerAttackPlayer(player, monster.def.attack);
-            // netvor má pouze jeden útok za tah
-            this.next();
+            this.action();
         }
     }
 }

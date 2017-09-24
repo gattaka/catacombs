@@ -59,7 +59,7 @@ namespace Catacombs {
     }
 
     // položky
-    TreasureDef.register(TreasureType.COIN, "coin", "zlatou minci", 2, 20);
+    TreasureDef.register(TreasureType.COIN, "coin", "zlatou minci", 1, 20);
     TreasureDef.register(TreasureType.CUP, "cup", "zlatý pohár", 2, 20);
     TreasureDef.register(TreasureType.GEMS, "gems", "drahokamy", 4, 10);
     TreasureDef.register(TreasureType.AMULET, "amulet", "amulet", 4, 10);

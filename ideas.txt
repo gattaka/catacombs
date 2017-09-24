@@ -76,13 +76,13 @@ Obecné
 - každý netvor má sílu, která udává, jak hodně zbroje musí hráč mít, aby neutrpěl zranění
 - obdobně má každý netvor houževnatost, která udává, kolik hráčů najednou nebo zbraň musí na něj být, aby padl
 
-	Netvor		Obrana			Síla	Speciální vlastnost
+	Netvor		Obrana	Tahy	Síla	Speciální vlastnost
 	-----------------------------------------------------------------------------------------------------------------------------------
-	Zombie		0				1		Nejslabší, ale nedá se trvale zniči -- keeper ji může kdykoliv oživit
-	Kostlivec	1				1		Dva hráči bez vybavení nebo jeden s +1 silou ho může zničit
-	Žabouch		1				2		Dokáže prorazit štít nebo zbroj (neumí oboje najednou)
-	Trol		2				2		Lze skolit pouze třemi hráči nebo dvěma, kdy jeden má vybavení
-	Minotaur	2				3		Umí proběhnout neomezenou řadou místností za sebou v jednou směru
+	Zombie		0/1		1		1		Slabá a pomalá; ale nedá se z počáku trvale zničit, jenom omráčit
+	Kostlivec	1		2		1		Slabý a rychlý; lze zničit jenom mečem
+	Žabouch		1		1		1		Slabý a pomalý; lze zničit jenom mečem, při zničení poleptá hráče
+	Trol		2		2		2		Silný a pomalý; lze zničit jenom samostřílem
+	Minotaur	2		3		2		Silný a velmi rychlý; lze zničit jenom samostřílem
 
 	Věc			Houževnatost	Síla
 	-----------------------------------------------------------------------------------------------------------------------------------
@@ -108,3 +108,5 @@ Obecné
 	- odpadl by problém opakovaného losování, pokud vybere moc silného netvora
 	- hrací plocha bude (možná nemusí) obarvena, aby bylo jasné kam lze dávat které typy netvorů
 - při každé objevené místnosti si tedy DK vybere netvora -- nebo může vynechat a šetřit
+
+- živí netvoři by mohli sami odkrývat místnosti, aby se "rozmnožili"

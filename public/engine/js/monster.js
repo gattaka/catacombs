@@ -11,17 +11,18 @@ var __extends = (this && this.__extends) || (function () {
 var Catacombs;
 (function (Catacombs) {
     var MonsterDef = /** @class */ (function () {
-        function MonsterDef(type, file, tier, defense, attack, availableInstances) {
+        function MonsterDef(type, file, tier, defense, actions, attack, availableInstances) {
             this.type = type;
             this.file = file;
             this.tier = tier;
             this.defense = defense;
+            this.actions = actions;
             this.attack = attack;
             this.availableInstances = availableInstances;
             MonsterDef.totalAvailableInstances += availableInstances;
         }
-        MonsterDef.register = function (type, file, tier, defense, attack, availableInstances) {
-            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, attack, availableInstances);
+        MonsterDef.register = function (type, file, tier, defense, actions, attack, availableInstances) {
+            MonsterDef.monsterDefs[tier - 1] = new MonsterDef(type, file, tier, defense, actions, attack, availableInstances);
         };
         MonsterDef.totalAvailableInstances = 0;
         MonsterDef.monsterDefs = new Array();
@@ -82,9 +83,9 @@ var Catacombs;
         MonsterType[MonsterType["MINOTAUR"] = 4] = "MINOTAUR";
     })(MonsterType = Catacombs.MonsterType || (Catacombs.MonsterType = {}));
     // netvoři
-    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 10);
-    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 1, 10);
-    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 1, 8);
-    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 5);
-    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 2);
+    MonsterDef.register(MonsterType.ZOMBIE, "zombie", 1, 0, 1, 1, 10);
+    MonsterDef.register(MonsterType.SKELETON, "skeleton", 2, 1, 2, 1, 10);
+    MonsterDef.register(MonsterType.SWAMPER, "swamper", 3, 1, 1, 1, 8);
+    MonsterDef.register(MonsterType.TROLL, "troll", 4, 2, 2, 2, 5);
+    MonsterDef.register(MonsterType.MINOTAUR, "minotaur", 5, 2, 3, 3, 2);
 })(Catacombs || (Catacombs = {}));
